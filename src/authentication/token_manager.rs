@@ -1,4 +1,3 @@
-
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::sync::RwLock;
@@ -8,12 +7,14 @@ use serde::{Deserialize, Serialize};
 use crate::error::ErrorType::HttpError;
 use crate::utils;
 
+/// Represents an access token and its expiration time.
 #[derive(Debug, Clone)]
 struct Token {
     access_token: String,
     expires_at: Instant,
 }
 
+/// Manages OAuth2 access tokens, including automatic refresh when expired.
 #[derive(Debug)]
 pub struct TokenManager {
     client_id: String,
@@ -23,6 +24,7 @@ pub struct TokenManager {
     token: Arc<RwLock<Option<Token>>>,
 }
 
+/// Request body for fetching a new token.
 #[derive(Serialize)]
 struct TokenRequest {
     grant_type: String,
@@ -31,13 +33,22 @@ struct TokenRequest {
     audience: String,
 }
 
+/// Response body when fetching a new token.
 #[derive(Deserialize)]
 struct TokenResponse {
     access_token: String,
     expires_in: u64,
 }
 
-impl TokenManager  {
+impl TokenManager {
+    /// Creates a new `TokenManager` for managing dynamic access tokens.
+    ///
+    /// # Arguments
+    ///
+    /// * `client_id` - OAuth2 client ID.
+    /// * `client_secret` - OAuth2 client secret.
+    /// * `api_url` - Base URL of the authentication server.
+    /// * `audience` - API audience identifier.
     pub fn new(client_id: String, client_secret: String, api_url: String, audience: String) -> Self {
         Self {
             client_id,
@@ -48,6 +59,14 @@ impl TokenManager  {
         }
     }
 
+    /// Retrieves a valid access token.
+    ///
+    /// If a valid token is already cached, it will return it.
+    /// Otherwise, it will request a new token from the server.
+    ///
+    /// # Returns
+    ///
+    /// A valid access token as a `String`, or an error if the token could not be fetched.
     pub async fn get_token(&self) -> Result<String, Error> {
         {
             let read_guard = self.token.read().await;
@@ -60,14 +79,14 @@ impl TokenManager  {
 
         let mut write_guard = self.token.write().await;
 
-        // Check again in case someone else refreshed while we were waiting for the write lock
+        // Check again after acquiring write lock
         if let Some(token) = &*write_guard {
             if Instant::now() < token.expires_at {
                 return Ok(token.access_token.clone());
             }
         }
 
-        let response = self.fetch_new_token().await?;
+        let response: TokenResponse = self.fetch_new_token().await?;
 
         let new_token = Token {
             access_token: response.access_token.clone(),
@@ -79,6 +98,9 @@ impl TokenManager  {
         Ok(new_token.access_token)
     }
 
+    /// Fetches a new access token from the authentication server.
+    ///
+    /// This method sends a client credentials grant request.
     async fn fetch_new_token(&self) -> Result<TokenResponse, Error> {
         let body = TokenRequest {
             grant_type: "client_credentials".to_string(),
@@ -94,7 +116,7 @@ impl TokenManager  {
             .post(&url)
             .header("accept", "application/json")
             .header("content-type", "application/json")
-            .header("user-agent", "TradeCrit")
+            .header("user-agent", "clearstreet-sdk")
             .json(&body)
             .send()
             .await?;
@@ -113,9 +135,18 @@ impl TokenManager  {
 
         Ok(body)
     }
-}
 
-impl TokenManager {
+    /// Creates a `TokenManager` with a static token.
+    ///
+    /// Useful for testing or if you already have a valid long-lived token.
+    ///
+    /// # Arguments
+    ///
+    /// * `token` - A pre-existing access token.
+    ///
+    /// # Returns
+    ///
+    /// A `TokenManager` instance that always returns the provided token.
     pub fn with_static_token(token: String) -> Self {
         let static_token = Token {
             access_token: token,
