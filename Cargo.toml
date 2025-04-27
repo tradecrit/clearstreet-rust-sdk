@@ -5,7 +5,6 @@ edition = "2024"
 authors = ["Tradecrit", "Dallin Wright"]
 rust-version = "1.86.0"
 description = "Clear Street SDK for Rust"
-license = "AGPLv3 + No Sale of Software"
 license-file = "LICENSE"
 
 [dependencies]
