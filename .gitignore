@@ -1,0 +1,8 @@
+/target
+.idea
+.env
+.env.list
+venv
+**/venv
+**/__pycache__
+**/*.tgz
