@@ -5,9 +5,11 @@ use crate::error::BrokerApiError;
 use crate::utils::parse_response;
 use crate::utils;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use crate::Client;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum OrderState {
     Open,
     Rejected,
@@ -15,25 +17,33 @@ pub enum OrderState {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum OrderStatus {
     New,
+    #[serde(rename = "partially-filled")]
     PartiallyFilled,
     Filled,
     Canceled,
     Replaced,
+    #[serde(rename = "pending-cancel")]
     PendingCancel,
     Stopped,
     Rejected,
     Suspended,
+    #[serde(rename = "pending-new")]
     PendingNew,
     Calculated,
     Expired,
+    #[serde(rename = "accepted-for-bidding")]
     AcceptedForBidding,
+    #[serde(rename = "pending-replace")]
     PendingReplace,
+    #[serde(rename = "done-for-day")]
     DoneForDay,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum OrderType {
     Market,
     Limit,
@@ -43,12 +53,12 @@ pub enum OrderType {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum OrderSide {
-    Market,
-    Limit,
-    Stop,
-    #[serde(rename = "stop-limit")]
-    StopLimit,
+    Buy,
+    Sell,
+    #[serde(rename = "sell-short")]
+    SellShort,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
@@ -66,10 +76,9 @@ pub enum TimeInForce {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum SymbolFormat {
-    #[serde(rename = "osi")]
     Osi,
-    #[serde(rename = "cms")]
     Cms,
 }
 
@@ -80,7 +89,7 @@ impl Default for SymbolFormat {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub struct Strategy {
+pub struct StrategyRoute {
     #[serde(rename = "type")]
     pub strategy_type: StrategyType,
     pub destination: Destination,
@@ -136,8 +145,22 @@ pub struct CreateOrderParams {
     pub time_in_force: Option<TimeInForce>,
     pub symbol: String,
     pub symbol_format: SymbolFormat,
-    pub routing_strategy: Option<StrategyType>
+    #[serde(rename = "strategy")]
+    // NOTE the remote api docs are contradicting. The actual body is unknown.
+    pub routing_strategy: Option<Value>
 }
+
+//     "strategy": {
+//       "type": "sor",
+//       "start_at": 0,
+//       "end_at": 0,
+//       "urgency": "moderate"
+//     },
+//  OR ?
+// {
+//       "type": "sor",
+//       "destination": "arcx"
+//     }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateOrderResponse {
@@ -180,14 +203,14 @@ pub struct Order {
     pub order_type: OrderType,
     pub side: OrderSide,
     pub quantity: String,
-    pub price: String,
-    pub stop_price: String,
+    pub price: Option<String>,
+    pub stop_price: Option<String>,
     pub time_in_force: TimeInForce,
     pub average_price: i64,
     pub filled_quantity: String,
     pub order_update_reason: String,
     pub text: String,
-    pub strategy: Strategy,
+    pub strategy: Option<Value>,
     pub running_position: String,
 }
 
@@ -320,4 +343,132 @@ impl Client {
         tracing::error!("{}", broker_error);
         Err(Error::new(HttpError, broker_error.to_string()))
     }
+}
+
+
+
+mod tests {
+    use tracing_subscriber::fmt::format::FmtSpan;
+    use crate::Client;
+    use mockito::{Server};
+    use crate::orders::{CreateOrderParams, Destination, OrderParams, OrderSide, OrderType, StrategyRoute, StrategyType};
+
+    fn setup_tracing() {
+        let _ = tracing_subscriber::fmt()
+            .with_env_filter(tracing_subscriber::EnvFilter::new("DEBUG"))
+            .with_target(true)
+            .with_level(true)
+            .with_thread_ids(true)
+            .with_thread_names(true)
+            .with_span_events(FmtSpan::CLOSE)
+            .with_line_number(true)
+            .with_ansi(true)
+            .with_writer(std::io::stdout)
+            .try_init();
+    }
+
+    #[tokio::test]
+    async fn test_create_order() {
+        setup_tracing();
+
+        let mut server = Server::new_async().await;
+
+        let _mock = server
+            .mock("POST", "/studio/v2/accounts/100000/orders")
+            .with_status(201)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{
+                "order_id": "abc123"
+            }"#)
+            .create_async()
+            .await;
+
+        let client = Client::new_with_token(server.url(), "test-token".into());
+
+        let unknown = StrategyRoute {
+            strategy_type: StrategyType::DirectMarketAccess,
+            destination: Destination::ARCX,
+        };
+
+        let params = CreateOrderParams {
+            account_id: "100000".to_string(),
+            reference_id: "my-custom-id".to_string(),
+            order_type: OrderType::Limit,
+            order_side: OrderSide::Buy,
+            quantity: "1".to_string(),
+            price: Some("10.00".to_string()),
+            stop_price: None,
+            time_in_force: None,
+            symbol: "AAPL".to_string(),
+            symbol_format: Default::default(),
+            routing_strategy: Some(serde_json::to_value(unknown).unwrap()),
+        };
+
+        let result = client.create_order(params).await;
+        assert!(result.is_ok());
+
+        let data = result.unwrap();
+        assert_eq!(data.order_id, "abc123");
+    }
+
+    #[tokio::test]
+    async fn test_get_order() {
+        setup_tracing();
+
+        let mut server = Server::new_async().await;
+
+        let _mock = server
+            .mock("GET", "/studio/v2/accounts/100000/orders/12390213")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"
+                {
+                    "order": {
+                        "created_at": 0,
+                        "updated_at": 0,
+                        "order_id": "12390213",
+                        "reference_id": "my-order-id",
+                        "version": 1,
+                        "account_id": "100000",
+                        "account_number": "ACC0001",
+                        "state": "open",
+                        "status": "new",
+                        "symbol": "AAPL",
+                        "order_type": "limit",
+                        "side": "buy",
+                        "quantity": "100",
+                        "price": "123.99",
+                        "stop_price": "123.99",
+                        "time_in_force": "day",
+                        "average_price": 0,
+                        "filled_quantity": "100",
+                        "order_update_reason": "place",
+                        "text": "string",
+                        "strategy": {
+                            "type": "sor",
+                            "start_at": 0,
+                            "end_at": 0,
+                            "urgency": "moderate"
+                        },
+                        "running_position": "100"
+                    }
+                }
+            "#)
+            .create_async()
+            .await;
+
+        let client = Client::new_with_token(server.url(), "test-token".into());
+
+        let params = OrderParams {
+            account_id: "100000".to_string(),
+            order_id: "12390213".to_string(),
+        };
+
+        let result = client.get_order(params).await;
+        assert!(result.is_ok());
+
+        let data = result.unwrap();
+        assert_eq!(data.order_id, "12390213");
+    }
+
 }
