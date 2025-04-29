@@ -19,8 +19,7 @@ pub struct Client {
 
 impl Client {
     pub fn new(client_id: String, client_secret: String, api_url: String) -> Self {
-        let audience = "https://api.clearstreet.io".to_string();
-        let token_manager = TokenManager::new(client_id, client_secret, api_url.clone(), audience);
+        let token_manager = TokenManager::new(client_id, client_secret, api_url.clone(), api_url.clone());
 
         Self {
             api_url,
