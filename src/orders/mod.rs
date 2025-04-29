@@ -199,7 +199,7 @@ struct GetOrderResponse {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct GetOrdersResponse {
     pub data: Vec<Order>,
-    pub next_page_token: String
+    pub next_page_token: Option<String>,
 }
 
 impl Client {

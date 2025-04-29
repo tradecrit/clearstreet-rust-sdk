@@ -4,6 +4,7 @@ mod authentication;
 mod utils;
 mod account;
 mod instruments;
+mod positions;
 
 use authentication::token_manager::TokenManager;
 use error::Error;
