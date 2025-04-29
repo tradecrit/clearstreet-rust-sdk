@@ -5,6 +5,7 @@ mod utils;
 mod account;
 mod instruments;
 mod positions;
+mod websockets;
 
 use authentication::token_manager::TokenManager;
 use error::Error;
