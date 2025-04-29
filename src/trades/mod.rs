@@ -27,7 +27,7 @@ pub struct GetTradeRequest {
 
 impl Client {
     pub async fn get_trade(&self,  get_trade_request: GetTradeRequest) -> Result<Trade, Error> {
-        let url = format!("{}/studio/v2/accounts/{}/trades/{}", self.api_url, get_trade_request.account_id, get_trade_request.trade_id);
+        let url = format!("{}/studio/v2/accounts/{}/trades/{}", self.client_options.api_url, get_trade_request.account_id, get_trade_request.trade_id);
 
         let client = self.build_authenticated_client().await?;
 
@@ -47,10 +47,11 @@ impl Client {
     }
 }
 
+#[cfg(test)]
 mod tests {
-    use tracing_subscriber::fmt::format::FmtSpan;
     use crate::Client;
-    use mockito::{Server};
+    use mockito::Server;
+    use tracing_subscriber::fmt::format::FmtSpan;
     use crate::trades::GetTradeRequest;
 
     fn setup_tracing() {
@@ -92,7 +93,7 @@ mod tests {
             .create_async()
             .await;
 
-        let client = Client::new_with_token(server.url(), "test-token".into());
+        let client = Client::new_with_token("test-token".into());
 
         let request = GetTradeRequest {
             account_id: "100000".to_string(),

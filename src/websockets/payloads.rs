@@ -27,6 +27,20 @@ pub enum PayloadType {
     ErrorNotice,
 }
 
+// All message formats and types, along with their serialization
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(tag = "payload.type", rename_all = "snake_case")]
+pub enum ActivityMessage {
+    SubscribeActivityAck(SubscribeActivityAck),
+    ReplayComplete(ReplayComplete),
+    OrderUpdate(OrderUpdate),
+    TradeNotice(TradeNotice),
+    PositionUpdate(PositionUpdate),
+    BuyingPowerUpdate(BuyingPowerUpdate),
+    LocateInventoryUpdate(LocateInventoryUpdate),
+}
+
+
 // All allowed outgoing message formats and types, along with their serialization
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SubscribeActivity {
@@ -38,19 +52,6 @@ pub struct SubscribeActivity {
 pub struct SubscribeActivityPayload {
     pub payload_type: PayloadType,
     pub account_id: String,
-}
-
-// All incoming message formats and types, along with their serialization
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(tag = "payload.type", rename_all = "snake_case")]
-pub enum IncomingWebSocketMessage {
-    SubscribeActivityAck(SubscribeActivityAckPayload),
-    ReplayComplete(ReplayCompletePayload),
-    OrderUpdate(OrderUpdatePayload),
-    TradeNotice(TradeNoticePayload),
-    PositionUpdate(PositionUpdatePayload),
-    BuyingPowerUpdate(BuyingPowerUpdatePayload),
-    LocateInventoryUpdate(LocateInventoryUpdatePayload),
 }
 
 // Subscribe Ack message format (INCOMING)

@@ -19,6 +19,7 @@ impl Display for BrokerApiError {
 }
 
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq)]
+#[allow(clippy::enum_variant_names)]
 pub enum ErrorType {
     ParseError,
     ThirdPartyError,
@@ -26,7 +27,8 @@ pub enum ErrorType {
     TimeoutError,
     IoError,
     ArithmeticError,
-    HttpError
+    HttpError,
+    SerializationError,
 }
 
 

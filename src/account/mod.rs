@@ -23,7 +23,7 @@ impl Client {
     pub async fn get_account(&self, account_id: &str) -> Result<Account, Error> {
         let client = self.build_authenticated_client().await?;
 
-        let url = format!("{}/accounts/{}", self.api_url, account_id);
+        let url = format!("{}/accounts/{}",  self.client_options.api_url, account_id);
 
         let request_builder = client.get(&url);
 
@@ -44,7 +44,7 @@ impl Client {
     pub async fn get_accounts(&self) -> Result<GetAccountsResponse, Error> {
         let client = self.build_authenticated_client().await?;
 
-        let url = format!("{}/accounts", self.api_url);
+        let url = format!("{}/accounts",  self.client_options.api_url);
 
         let request_builder = client.get(&url);
 
@@ -103,7 +103,7 @@ use crate::Client;
             .create_async()
             .await;
 
-        let client = Client::new_with_token(server.url(), "test-token".into());
+        let client = Client::new_with_token("test-token".into());
 
         let result = client.get_account("123").await;
 
@@ -136,7 +136,7 @@ use crate::Client;
             .create_async()
             .await;
 
-        let client = Client::new_with_token(server.url(), "test-token".into());
+        let client = Client::new_with_token("test-token".into());
 
         let result = client.get_accounts().await;
         assert!(result.is_ok());

@@ -150,7 +150,7 @@ impl TokenManager {
     pub fn with_static_token(token: String) -> Self {
         let static_token = Token {
             access_token: token,
-            expires_at: Instant::now() + Duration::from_secs(60 * 60 * 24), // 24 hours
+            expires_at: Instant::now() + Duration::from_secs(60 * 60 * 8), // 8 hours
         };
 
         Self {

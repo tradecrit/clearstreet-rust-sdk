@@ -75,17 +75,12 @@ pub enum TimeInForce {
     AtClose,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum SymbolFormat {
     Osi,
+    #[default]
     Cms,
-}
-
-impl Default for SymbolFormat {
-    fn default() -> Self {
-        SymbolFormat::Cms
-    }
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
@@ -117,19 +112,19 @@ pub enum StrategyType {
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 #[serde(rename_all = "UPPERCASE")]
 pub enum Destination {
-    ARCX, // NYSE ARCA
-    BATS, // BATS Exchange
-    BATY, // BATS Y Exchange
-    EDGA, // EDGA Exchange
-    EDGX, // EDGX Exchange
-    EPRL, // MIAX Pearl Equities
-    IEXG, // Investors' Exchange
-    MEMX, // Members' Exchange
-    XASE, // NYSE American
-    XBOS, // NASDAQ BX Exchange
-    XCIS, // NYSE National
-    XNMS, // NASDAQ/NMS (Global Market)
-    XNYS, // New York Stock Exchange
+    Arcx, // NYSE ARCA
+    Bats, // BATS Exchange
+    Baty, // BATS Y Exchange
+    Edga, // EDGA Exchange
+    Edgx, // EDGX Exchange
+    Eprl, // MIAX Pearl Equities
+    Iexg, // Investors' Exchange
+    Memx, // Members' Exchange
+    Xase, // NYSE American
+    Xbos, // NASDAQ BX Exchange
+    Xcis, // NYSE National
+    Xnms, // NASDAQ/NMS (Global Market)
+    Xnys, // New York Stock Exchange
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -246,7 +241,7 @@ impl Client {
 
         let url = format!(
             "{}/studio/v2/accounts/{}/orders",
-            self.api_url, params.account_id
+            self.client_options.api_url, params.account_id
         );
 
         let request_builder: RequestBuilder = client.post(&url).json(&params);
@@ -283,7 +278,7 @@ impl Client {
 
         let url = format!(
             "{}/studio/v2/accounts/{}/orders/{}",
-            self.api_url, params.account_id, params.order_id
+            self.client_options.api_url, params.account_id, params.order_id
         );
 
         let request_builder: RequestBuilder = client.get(&url);
@@ -320,7 +315,7 @@ impl Client {
 
         let url: String = format!(
             "{}/studio/v2/accounts/{}/orders/{}",
-            self.api_url, params.account_id, params.order_id
+            self.client_options.api_url, params.account_id, params.order_id
         );
 
         let request_builder: RequestBuilder = client.delete(&url);
@@ -361,7 +356,7 @@ impl Client {
 
         let url: String = format!(
             "{}/studio/v2/accounts/{}/orders/{}",
-            self.api_url, params.account_id, params.order_id
+            self.client_options.api_url, params.account_id, params.order_id
         );
 
         let request_builder: RequestBuilder = client.patch(&url).json(&body);
@@ -387,7 +382,7 @@ impl Client {
 
         let client = self.build_authenticated_client().await?;
 
-        let url: String = format!("{}/studio/v2/accounts/{}/orders", self.api_url, account_id);
+        let url: String = format!("{}/studio/v2/accounts/{}/orders",  self.client_options.api_url, account_id);
 
         let request_builder: RequestBuilder = client
             .get(&url)
@@ -410,6 +405,7 @@ impl Client {
     }
 }
 
+#[cfg(test)]
 mod tests {
     use crate::orders::{CreateOrderParams, Destination, ListOrdersParams, OrderParams, OrderSide, OrderType, StrategyRoute, StrategyType, UpdateOrderRequestBody};
     use crate::Client;
@@ -448,11 +444,11 @@ mod tests {
             .create_async()
             .await;
 
-        let client = Client::new_with_token(server.url(), "test-token".into());
+        let client = Client::new_with_token("test-token".into());
 
         let unknown = StrategyRoute {
             strategy_type: StrategyType::DirectMarketAccess,
-            destination: Destination::ARCX,
+            destination: Destination::Arcx,
         };
 
         let params = CreateOrderParams {
@@ -524,7 +520,7 @@ mod tests {
             .create_async()
             .await;
 
-        let client = Client::new_with_token(server.url(), "test-token".into());
+        let client = Client::new_with_token("test-token".into());
 
         let params = OrderParams {
             account_id: "100000".to_string(),
@@ -551,7 +547,7 @@ mod tests {
             .create_async()
             .await;
 
-        let client = Client::new_with_token(server.url(), "test-token".into());
+        let client = Client::new_with_token("test-token".into());
 
         let params = OrderParams {
             account_id: "100000".to_string(),
@@ -575,7 +571,7 @@ mod tests {
             .create_async()
             .await;
 
-        let client = Client::new_with_token(server.url(), "test-token".into());
+        let client = Client::new_with_token("test-token".into());
 
         let order_params: OrderParams = OrderParams {
             account_id: "100000".to_string(),
@@ -643,7 +639,7 @@ mod tests {
             .create_async()
             .await;
 
-        let client = Client::new_with_token(server.url(), "test-token".into());
+        let client = Client::new_with_token("test-token".into());
 
         let params = ListOrdersParams {
             from: 0,

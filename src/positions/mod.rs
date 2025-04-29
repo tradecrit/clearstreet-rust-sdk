@@ -33,7 +33,7 @@ impl Client {
         //      --url https://api.clearstreet.io/studio/v2/accounts/asdasd/positions/APL \
         let client = self.build_authenticated_client().await?;
 
-        let url = format!("{}/studio/v2/accounts/{}/positions/{}", self.api_url, params.account_id, params.symbol);
+        let url = format!("{}/studio/v2/accounts/{}/positions/{}",  self.client_options.api_url, params.account_id, params.symbol);
 
         let request_builder = client.get(&url);
 
@@ -55,7 +55,7 @@ impl Client {
 
         let client = self.build_authenticated_client().await?;
 
-        let url = format!("{}/studio/v2/accounts/{}/positions", self.api_url, account_id);
+        let url = format!("{}/studio/v2/accounts/{}/positions",  self.client_options.api_url, account_id);
 
         let request_builder = client.get(&url);
 
@@ -73,6 +73,7 @@ impl Client {
     }
 }
 
+#[cfg(test)]
 mod tests {
     use tracing_subscriber::fmt::format::FmtSpan;
     use crate::Client;
@@ -113,7 +114,7 @@ mod tests {
             .create_async()
             .await;
 
-        let client = Client::new_with_token(server.url(), "test-token".into());
+        let client = Client::new_with_token("test-token".into());
 
         let params = GetPositionParams {
             account_id: "100000".to_string(),
@@ -150,7 +151,7 @@ mod tests {
             .create_async()
             .await;
 
-        let client = Client::new_with_token(server.url(), "test-token".into());
+        let client = Client::new_with_token("test-token".into());
 
         let account_id = "100000".to_string();
 

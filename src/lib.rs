@@ -8,21 +8,47 @@ mod positions;
 mod websockets;
 mod trades;
 
+use serde::{Deserialize, Serialize};
 use authentication::token_manager::TokenManager;
 use error::Error;
 
-
+#[derive(Debug)]
 pub struct Client {
-    pub api_url: String,
-    pub token_manager: TokenManager,
+    pub client_options: ClientOptions,
+    pub token_manager: TokenManager, // not clone, otherwise your tokens will break
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ClientOptions {
+    pub api_url: String,
+    pub websocket_url: String,
+    pub client_id: String,
+    pub client_secret: String,
+}
+
+impl Default for ClientOptions {
+    fn default() -> Self {
+        Self {
+            api_url: "https://api.clearstreet.io/studio/v2".to_string(),
+            websocket_url: "wss://api.clearstreet.io/studio/v2/ws".to_string(),
+            client_id: "<your_client_id>".to_string(),
+            client_secret: "<your_client_secret>".to_string(),
+        }
+    }
+}
+
+
 impl Client {
-    pub fn new(client_id: String, client_secret: String, api_url: String) -> Self {
-        let token_manager = TokenManager::new(client_id, client_secret, api_url.clone(), api_url.clone());
+    pub fn new(client_options: ClientOptions) -> Self {
+        let token_manager: TokenManager = TokenManager::new(
+            client_options.client_id.clone(),
+            client_options.client_secret.clone(),
+            client_options.api_url.clone(),
+            client_options.api_url.clone()
+        );
 
         Self {
-            api_url,
+            client_options,
             token_manager
         }
     }
@@ -43,10 +69,11 @@ impl Client {
 }
 
 impl Client {
-    pub fn new_with_token(api_url: String, token: String) -> Self {
+    pub fn new_with_token(token: String) -> Self {
         let token_manager = TokenManager::with_static_token(token);
+
         Self {
-            api_url,
+            client_options: ClientOptions::default(),
             token_manager,
         }
     }
