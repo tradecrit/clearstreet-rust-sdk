@@ -3,12 +3,13 @@ use serde::{Deserialize, Serialize};
 use crate::{utils, Client};
 use crate::error::{BrokerApiError, Error};
 use crate::error::ErrorType::HttpError;
+use crate::orders::SymbolFormat;
 use crate::utils::parse_response;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SymbolDetail {
     pub symbol: String,
-    pub symbol_format: String,
+    pub symbol_format: SymbolFormat,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -17,12 +18,6 @@ pub struct Instrument {
     pub asset_class: String,
     pub primary_exchange: String,
     pub description: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub enum SymbolFormat {
-    OSI,
-    CMS,
 }
 
 impl Client {
