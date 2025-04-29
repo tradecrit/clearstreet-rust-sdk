@@ -103,7 +103,7 @@ use crate::Client;
             .create_async()
             .await;
 
-        let client = Client::new_with_token("test-token".into());
+        let client = Client::new_with_token(server.url(), "".to_string(), "test-token".into());
 
         let result = client.get_account("123").await;
 
@@ -136,7 +136,7 @@ use crate::Client;
             .create_async()
             .await;
 
-        let client = Client::new_with_token("test-token".into());
+        let client = Client::new_with_token(server.url(), "".to_string(), "test-token".into());
 
         let result = client.get_accounts().await;
         assert!(result.is_ok());

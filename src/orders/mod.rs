@@ -84,21 +84,96 @@ pub enum SymbolFormat {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub struct StrategyRoute {
+pub struct DirectMarketAccessStrategy {
     #[serde(rename = "type")]
     pub strategy_type: StrategyType,
     pub destination: Destination,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[serde(rename_all = "UPPERCASE")]
+pub struct SmartOrderRouterStrategy {
+    #[serde(rename = "type")]
+    pub strategy_type: StrategyType,
+    pub start_at: Option<i64>,
+    pub end_at: Option<i64>,
+    pub urgency: Option<Urgency>,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct VolumeWeightedAveragePriceStrategy {
+    #[serde(rename = "type")]
+    pub strategy_type: StrategyType,
+    pub start_at: Option<i64>,
+    pub end_at: Option<i64>,
+    pub urgency: Option<Urgency>,
+    pub min_percent: Option<i64>,
+    pub max_percent: Option<i64>,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct TimeWeightedAveragePriceStrategy {
+    #[serde(rename = "type")]
+    pub strategy_type: StrategyType,
+    pub start_at: Option<i64>,
+    pub end_at: Option<i64>,
+    pub urgency: Option<Urgency>,
+    pub min_percent: Option<i64>,
+    pub max_percent: Option<i64>,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct PercentageOfVolumeStrategy {
+    #[serde(rename = "type")]
+    pub strategy_type: StrategyType,
+    pub start_at: Option<i64>,
+    pub end_at: Option<i64>,
+    pub urgency: Option<Urgency>,
+    pub target_percent: i64,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct ArrivalPrice {
+    #[serde(rename = "type")]
+    pub strategy_type: StrategyType,
+    pub start_at: Option<i64>,
+    pub end_at: Option<i64>,
+    pub urgency: Option<Urgency>,
+    pub min_percent: Option<i64>,
+    pub max_percent: Option<i64>,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct DarkStrategy {
+    #[serde(rename = "type")]
+    pub strategy_type: StrategyType,
+    pub start_at: Option<i64>,
+    pub end_at: Option<i64>,
+    pub urgency: Option<Urgency>,
+    pub max_percent: Option<i64>,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub enum Urgency {
+    #[serde(rename = "super-passive")]
+    SuperPassive,
+    #[serde(rename = "passive")]
+    Passive,
+    #[serde(rename = "moderate")]
+    Moderate,
+    #[serde(rename = "aggressive")]
+    Aggressive,
+    #[serde(rename = "super-aggressive")]
+    SuperAggressive,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum StrategyType {
     #[serde(rename = "sor")]
     SmartOrderRoute, // Smart Order Router
     #[serde(rename = "dark")]
     Dark, // Dark Pool
     #[serde(rename = "ap")]
-    ArrivalPrice, // Arrival price
+    ArrivalPrice, // Arrival Price
     #[serde(rename = "pov")]
     PercentageOfVolume, // Percentage of Volume
     #[serde(rename = "twap")]
@@ -107,6 +182,17 @@ pub enum StrategyType {
     VolumeWeightedAveragePrice, // Volume Weighted Average Price
     #[serde(rename = "dma")]
     DirectMarketAccess, // Direct Market Access
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub enum Strategy {
+    SmartOrderRoute(SmartOrderRouterStrategy), // Smart Order Router
+    Dark(DarkStrategy), // Dark Pool
+    ArrivalPrice(ArrivalPrice), // Arrival Price
+    PercentageOfVolume(PercentageOfVolumeStrategy), // Percentage of Volume
+    TimeWeightedAveragePrice(TimeWeightedAveragePriceStrategy), // Time Weighted Average Price
+    VolumeWeightedAveragePrice(VolumeWeightedAveragePriceStrategy), // Volume Weighted Average Price
+    DirectMarketAccess(DirectMarketAccessStrategy), // Direct Market Access
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
@@ -141,21 +227,8 @@ pub struct CreateOrderParams {
     pub symbol: String,
     pub symbol_format: SymbolFormat,
     #[serde(rename = "strategy")]
-    // NOTE the remote api docs are contradicting. The actual body is unknown.
-    pub routing_strategy: Option<Value>,
+    pub routing_strategy: Option<Strategy>,
 }
-
-//     "strategy": {
-//       "type": "sor",
-//       "start_at": 0,
-//       "end_at": 0,
-//       "urgency": "moderate"
-//     },
-//  OR ?
-// {
-//       "type": "sor",
-//       "destination": "arcx"
-//     }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateOrderResponse {
@@ -407,10 +480,11 @@ impl Client {
 
 #[cfg(test)]
 mod tests {
-    use crate::orders::{CreateOrderParams, Destination, ListOrdersParams, OrderParams, OrderSide, OrderType, StrategyRoute, StrategyType, UpdateOrderRequestBody};
+    use crate::orders::{CreateOrderParams, Destination, DirectMarketAccessStrategy, ListOrdersParams, OrderParams, OrderSide, OrderType, StrategyType, UpdateOrderRequestBody};
     use crate::Client;
     use mockito::Server;
     use tracing_subscriber::fmt::format::FmtSpan;
+    use crate::orders::Strategy::DirectMarketAccess;
 
     fn setup_tracing() {
         let _ = tracing_subscriber::fmt()
@@ -444,9 +518,9 @@ mod tests {
             .create_async()
             .await;
 
-        let client = Client::new_with_token("test-token".into());
+        let client = Client::new_with_token(server.url(), "".to_string(), "test-token".into());
 
-        let unknown = StrategyRoute {
+        let strategy = DirectMarketAccessStrategy {
             strategy_type: StrategyType::DirectMarketAccess,
             destination: Destination::Arcx,
         };
@@ -462,7 +536,7 @@ mod tests {
             time_in_force: None,
             symbol: "AAPL".to_string(),
             symbol_format: Default::default(),
-            routing_strategy: Some(serde_json::to_value(unknown).unwrap()),
+            routing_strategy: Some(DirectMarketAccess(strategy)),
         };
 
         let result = client.create_order(params).await;
@@ -520,7 +594,7 @@ mod tests {
             .create_async()
             .await;
 
-        let client = Client::new_with_token("test-token".into());
+        let client = Client::new_with_token(server.url(), "".to_string(), "test-token".into());
 
         let params = OrderParams {
             account_id: "100000".to_string(),
@@ -547,7 +621,7 @@ mod tests {
             .create_async()
             .await;
 
-        let client = Client::new_with_token("test-token".into());
+        let client = Client::new_with_token(server.url(), "".to_string(), "test-token".into());
 
         let params = OrderParams {
             account_id: "100000".to_string(),
@@ -571,7 +645,7 @@ mod tests {
             .create_async()
             .await;
 
-        let client = Client::new_with_token("test-token".into());
+        let client = Client::new_with_token(server.url(), "".to_string(), "test-token".into());
 
         let order_params: OrderParams = OrderParams {
             account_id: "100000".to_string(),
@@ -639,7 +713,7 @@ mod tests {
             .create_async()
             .await;
 
-        let client = Client::new_with_token("test-token".into());
+        let client = Client::new_with_token(server.url(), "".to_string(), "test-token".into());
 
         let params = ListOrdersParams {
             from: 0,

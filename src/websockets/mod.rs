@@ -275,8 +275,7 @@ mod tests {
         // Wait for server to bind
         ready.notified().await;
 
-        let mut temp_client = Client::new_with_token("mock-token".to_string());
-        temp_client.client_options.websocket_url = test_url.clone();
+        let temp_client = Client::new_with_token("".to_string(), test_url.clone(), "mock-token".to_string());
 
         let client = Arc::new(temp_client);
         let mut rx = client.connect_websocket().await.unwrap();

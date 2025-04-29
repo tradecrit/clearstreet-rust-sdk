@@ -114,7 +114,7 @@ mod tests {
             .create_async()
             .await;
 
-        let client = Client::new_with_token("test-token".into());
+        let client = Client::new_with_token(server.url(), "".to_string(), "test-token".into());
 
         let params = GetPositionParams {
             account_id: "100000".to_string(),
@@ -151,7 +151,7 @@ mod tests {
             .create_async()
             .await;
 
-        let client = Client::new_with_token("test-token".into());
+        let client = Client::new_with_token(server.url(), "".to_string(), "test-token".into());
 
         let account_id = "100000".to_string();
 

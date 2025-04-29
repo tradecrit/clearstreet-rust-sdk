@@ -69,11 +69,18 @@ impl Client {
 }
 
 impl Client {
-    pub fn new_with_token(token: String) -> Self {
+    pub fn new_with_token(api_url: String, websocket_url: String, token: String) -> Self {
         let token_manager = TokenManager::with_static_token(token);
+        
+        let client_options = ClientOptions {
+            api_url,
+            websocket_url,
+            client_id: "<your_client_id>".to_string(),
+            client_secret: "<your_client_secret>".to_string(),
+        };
 
         Self {
-            client_options: ClientOptions::default(),
+            client_options,
             token_manager,
         }
     }
