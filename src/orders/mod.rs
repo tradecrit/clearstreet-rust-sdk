@@ -159,7 +159,7 @@ pub struct GetOrdersParams {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdateOrderRequest {
+pub struct UpdateOrderRequestBody {
     pub quantity: String,
     pub price: Option<String>,
     pub stop_price: Option<String>,
@@ -204,15 +204,15 @@ struct GetOrdersResponse {
 
 impl Client {
     #[tracing::instrument(skip(self))]
-    pub async fn create_order(&self, create_orders_params: CreateOrderParams) -> Result<CreateOrderResponse, Error> {
-        tracing::debug!("create_order: {:?}", create_orders_params);
+    pub async fn create_order(&self, params: CreateOrderParams) -> Result<CreateOrderResponse, Error> {
+        tracing::debug!("create_order: {:?}", params);
 
         let client = self.build_authenticated_client().await?;
 
-        let url = format!("{}/studio/v2/accounts/{}/orders", self.api_url, create_orders_params.account_id);
+        let url = format!("{}/studio/v2/accounts/{}/orders", self.api_url, params.account_id);
 
         let request_builder: RequestBuilder = client.post(&url)
-            .json(&create_orders_params);
+            .json(&params);
 
         let response: Response = utils::request(request_builder).await?;
 
@@ -228,12 +228,12 @@ impl Client {
     }
 
     #[tracing::instrument(skip(self))]
-    pub async fn get_order(&self, orders_params: OrderParams) -> Result<Order, Error> {
-        tracing::debug!("get_order: {:?}", orders_params);
+    pub async fn get_order(&self, params: OrderParams) -> Result<Order, Error> {
+        tracing::debug!("get_order: {:?}", params);
 
         let client = self.build_authenticated_client().await?;
 
-        let url = format!("{}/studio/v2/accounts/{}/orders/{}", self.api_url, orders_params.account_id, orders_params.order_id);
+        let url = format!("{}/studio/v2/accounts/{}/orders/{}", self.api_url, params.account_id, params.order_id);
 
         let request_builder: RequestBuilder = client.get(&url);
 
@@ -251,12 +251,12 @@ impl Client {
     }
 
     #[tracing::instrument(skip(self))]
-    pub async fn delete_order(&self, orders_params: OrderParams) -> Result<(), Error> {
-        tracing::debug!("delete_order: {:?}", orders_params);
+    pub async fn delete_order(&self, params: OrderParams) -> Result<(), Error> {
+        tracing::debug!("delete_order: {:?}", params);
 
         let client = self.build_authenticated_client().await?;
 
-        let url: String = format!("{}/studio/v2/accounts/{}/orders/{}", self.api_url, orders_params.account_id, orders_params.order_id);
+        let url: String = format!("{}/studio/v2/accounts/{}/orders/{}", self.api_url, params.account_id, params.order_id);
 
         let request_builder: RequestBuilder = client.delete(&url);
 
@@ -272,16 +272,16 @@ impl Client {
     }
 
     #[tracing::instrument(skip(self))]
-    pub async fn update_order(&self, orders_params: OrderParams, update_order_request: UpdateOrderRequest) -> Result<(), Error> {
-        tracing::debug!("update_order: {:?}", orders_params);
-        tracing::debug!("update_order_request: {:?}", update_order_request);
+    pub async fn update_order(&self, params: OrderParams, body: UpdateOrderRequestBody) -> Result<(), Error> {
+        tracing::debug!("update_order: {:?}", params);
+        tracing::debug!("update_order_request: {:?}", body);
 
         let client = self.build_authenticated_client().await?;
 
-        let url: String = format!("{}/studio/v2/accounts/{}/orders/{}", self.api_url, orders_params.account_id, orders_params.order_id);
+        let url: String = format!("{}/studio/v2/accounts/{}/orders/{}", self.api_url, params.account_id, params.order_id);
 
         let request_builder: RequestBuilder = client.put(&url)
-            .json(&update_order_request);
+            .json(&body);
 
         let response: Response = utils::request(request_builder).await?;
 

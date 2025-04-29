@@ -1,27 +1,29 @@
 use serde::{Deserialize, Serialize};
 use crate::orders::Order;
 
+// Subscribe activity payload and message
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct SubscribeRequest {
+pub struct SubscribeActivity {
     pub authorization: String,
-    pub payload: SubscribeRequestPayload,
+    pub payload: SubscribeActivityPayload,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct SubscribeRequestPayload {
+pub struct SubscribeActivityPayload {
     #[serde(rename = "type")]
     pub payload_type: String,
     pub account_id: String,
 }
 
+// Ack from server
 #[derive(Clone, Debug, Serialize, Deserialize)]
-struct SubscribeAckMessage {
+struct SubscribeActivityAck {
     pub timestamp: i64,
-    pub payload: SubscribeResponsePayload
+    pub payload: SubscribeActivityAckPayload
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct SubscribeResponsePayload {
+pub struct SubscribeActivityAckPayload {
     #[serde(rename = "type")]
     pub payload_type: String,
     pub account_id: String,
@@ -29,8 +31,9 @@ pub struct SubscribeResponsePayload {
     pub details: String,
 }
 
+//  Replay complete after connection and catch up
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct ReplaceCompleteMessage {
+pub struct ReplayComplete {
     pub timestamp: i64,
     pub payload: ReplayCompletePayload,
 }
@@ -42,7 +45,7 @@ pub struct ReplayCompletePayload {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct OrderUpdateMessage {
+pub struct OrderUpdate {
     pub timestamp: i64,
     pub sequence: i64,
     pub payload: OrderUpdatePayload,
@@ -54,3 +57,17 @@ pub struct OrderUpdatePayload {
     pub payload_type: String,
     pub data: Order,
 }
+
+// #[derive(Clone, Debug, Serialize, Deserialize)]
+// pub struct TradeNotice {
+//     timestamp: i64,
+//     sequence: i64,
+//     payload: TradeNoticePayload,
+// }
+
+// #[derive(Clone, Debug, Serialize, Deserialize)]
+// pub struct TradeNoticePayload {
+//     #[serde(rename = "type")]
+//     pub payload_type: String,
+//     pub data: TradeNoticeData,
+// }

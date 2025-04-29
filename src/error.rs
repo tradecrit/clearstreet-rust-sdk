@@ -1,5 +1,6 @@
 use std::fmt::Display;
 use serde::{Deserialize, Serialize};
+use tokio_tungstenite::tungstenite;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct BrokerApiError {
@@ -65,6 +66,12 @@ impl From<serde_json::Error> for Error {
 
 impl From<reqwest::Error> for Error {
     fn from(err: reqwest::Error) -> Self {
+        Error::new(ErrorType::IoError, err.to_string())
+    }
+}
+
+impl From<tungstenite::error::Error> for Error {
+    fn from(err: tungstenite::error::Error) -> Self {
         Error::new(ErrorType::IoError, err.to_string())
     }
 }
