@@ -3,6 +3,7 @@ mod orders;
 mod authentication;
 mod utils;
 mod account;
+mod instruments;
 
 use authentication::token_manager::TokenManager;
 use error::Error;
