@@ -1,12 +1,12 @@
-use reqwest::{RequestBuilder, Response};
-use crate::error::ErrorType::HttpError;
-use crate::Error;
 use crate::error::BrokerApiError;
-use crate::utils::parse_response;
+use crate::error::ErrorType::HttpError;
 use crate::utils;
+use crate::utils::parse_response;
+use crate::Client;
+use crate::Error;
+use reqwest::{RequestBuilder, Response};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use crate::Client;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -147,7 +147,7 @@ pub struct CreateOrderParams {
     pub symbol_format: SymbolFormat,
     #[serde(rename = "strategy")]
     // NOTE the remote api docs are contradicting. The actual body is unknown.
-    pub routing_strategy: Option<Value>
+    pub routing_strategy: Option<Value>,
 }
 
 //     "strategy": {
@@ -174,7 +174,7 @@ pub struct OrderParams {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GetOrdersParams {
+pub struct ListOrdersParams {
     pub from: i64,
     pub to: i64,
     pub page_size: i64,
@@ -215,27 +215,41 @@ pub struct Order {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct GetOrderResponse {
+pub struct GetOrderResponse {
     pub order: Order,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct GetOrdersResponse {
+pub struct ListOrdersResponse {
     pub data: Vec<Order>,
     pub next_page_token: Option<String>,
 }
 
 impl Client {
+    /// Creates an order. The order is created in the broker's system and is not
+    /// immediately executed. The order is created in the broker's system and is not
+    /// immediately matched.
+    ///
+    /// # Arguments
+    ///
+    /// * `params` - The order parameters
+    ///
+    /// # Returns
+    ///
+    /// * `Result<CreateOrderResponse, Error>` - Ok if the order was created, Err if there was an error
+    ///
     #[tracing::instrument(skip(self))]
-    pub async fn create_order(&self, params: CreateOrderParams) -> Result<CreateOrderResponse, Error> {
+    pub async fn create_order(&self, params: CreateOrderParams, ) -> Result<CreateOrderResponse, Error> {
         tracing::debug!("create_order: {:?}", params);
 
         let client = self.build_authenticated_client().await?;
 
-        let url = format!("{}/studio/v2/accounts/{}/orders", self.api_url, params.account_id);
+        let url = format!(
+            "{}/studio/v2/accounts/{}/orders",
+            self.api_url, params.account_id
+        );
 
-        let request_builder: RequestBuilder = client.post(&url)
-            .json(&params);
+        let request_builder: RequestBuilder = client.post(&url).json(&params);
 
         let response: Response = utils::request(request_builder).await?;
 
@@ -250,13 +264,27 @@ impl Client {
         Err(Error::new(HttpError, broker_error.to_string()))
     }
 
+    /// Gets an order by id. There is currently a problem with the documents that show
+    /// incompatible types for the strategy route.
+    ///
+    /// # Arguments
+    ///
+    /// * `params` - The order parameters
+    ///
+    /// # Returns
+    ///
+    /// * `Result<Order, Error>` - Ok if the order was found, Err if there was an error
+    ///
     #[tracing::instrument(skip(self))]
     pub async fn get_order(&self, params: OrderParams) -> Result<Order, Error> {
         tracing::debug!("get_order: {:?}", params);
 
         let client = self.build_authenticated_client().await?;
 
-        let url = format!("{}/studio/v2/accounts/{}/orders/{}", self.api_url, params.account_id, params.order_id);
+        let url = format!(
+            "{}/studio/v2/accounts/{}/orders/{}",
+            self.api_url, params.account_id, params.order_id
+        );
 
         let request_builder: RequestBuilder = client.get(&url);
 
@@ -273,13 +301,27 @@ impl Client {
         Err(Error::new(HttpError, broker_error.to_string()))
     }
 
+    /// Deletes an order. NOTE this attempts to cancel the order, that doesn't mean that is does.
+    /// The response status code then means the request was received and sent for cancellation.
+    ///
+    /// # Arguments
+    ///
+    /// * `params` - The order parameters
+    ///
+    /// # Returns
+    ///
+    /// * `Result<(), Error>` - Ok if the order was deleted, Err if there was an error
+    ///
     #[tracing::instrument(skip(self))]
     pub async fn delete_order(&self, params: OrderParams) -> Result<(), Error> {
         tracing::debug!("delete_order: {:?}", params);
 
         let client = self.build_authenticated_client().await?;
 
-        let url: String = format!("{}/studio/v2/accounts/{}/orders/{}", self.api_url, params.account_id, params.order_id);
+        let url: String = format!(
+            "{}/studio/v2/accounts/{}/orders/{}",
+            self.api_url, params.account_id, params.order_id
+        );
 
         let request_builder: RequestBuilder = client.delete(&url);
 
@@ -294,17 +336,35 @@ impl Client {
         Err(Error::new(HttpError, broker_error.to_string()))
     }
 
+    /// Updates an order. The order is updated in the broker's system and is not
+    /// immediately executed. The order is updated in the broker's system and is not
+    /// immediately matched.
+    ///
+    /// # Arguments
+    ///
+    /// * `params` - The order parameters
+    ///
+    /// # Returns
+    ///
+    /// * `Result<(), Error>` - Ok if the order was updated, Err if there was an error
+    ///
     #[tracing::instrument(skip(self))]
-    pub async fn update_order(&self, params: OrderParams, body: UpdateOrderRequestBody) -> Result<(), Error> {
+    pub async fn update_order(
+        &self,
+        params: OrderParams,
+        body: UpdateOrderRequestBody,
+    ) -> Result<(), Error> {
         tracing::debug!("update_order: {:?}", params);
         tracing::debug!("update_order_request: {:?}", body);
 
         let client = self.build_authenticated_client().await?;
 
-        let url: String = format!("{}/studio/v2/accounts/{}/orders/{}", self.api_url, params.account_id, params.order_id);
+        let url: String = format!(
+            "{}/studio/v2/accounts/{}/orders/{}",
+            self.api_url, params.account_id, params.order_id
+        );
 
-        let request_builder: RequestBuilder = client.put(&url)
-            .json(&body);
+        let request_builder: RequestBuilder = client.patch(&url).json(&body);
 
         let response: Response = utils::request(request_builder).await?;
 
@@ -318,23 +378,28 @@ impl Client {
     }
 
     #[tracing::instrument(skip(self))]
-    pub async fn get_orders(&self, account_id: &str, get_orders_params: GetOrdersParams) -> Result<Vec<Order>, Error> {
+    pub async fn list_orders(
+        &self,
+        account_id: &str,
+        params: ListOrdersParams,
+    ) -> Result<ListOrdersResponse, Error> {
         tracing::debug!("get_orders");
 
         let client = self.build_authenticated_client().await?;
 
         let url: String = format!("{}/studio/v2/accounts/{}/orders", self.api_url, account_id);
 
-        let request_builder: RequestBuilder = client.get(&url)
-            .query(&[("from", get_orders_params.from)])
-            .query(&[("to", get_orders_params.to)])
-            .query(&[("page_size", get_orders_params.page_size)])
-            .query(&[("page_token", get_orders_params.page_token)]);
+        let request_builder: RequestBuilder = client
+            .get(&url)
+            .query(&[("from", params.from)])
+            .query(&[("to", params.to)])
+            .query(&[("page_size", params.page_size)])
+            .query(&[("page_token", params.page_token)]);
 
         let response: Response = utils::request(request_builder).await?;
 
         if response.status().is_success() {
-            let body: Vec<Order> = parse_response(response).await?;
+            let body: ListOrdersResponse = parse_response(response).await?;
             tracing::debug!("{:?}", body);
             return Ok(body);
         }
@@ -345,13 +410,11 @@ impl Client {
     }
 }
 
-
-
 mod tests {
-    use tracing_subscriber::fmt::format::FmtSpan;
+    use crate::orders::{CreateOrderParams, Destination, ListOrdersParams, OrderParams, OrderSide, OrderType, StrategyRoute, StrategyType, UpdateOrderRequestBody};
     use crate::Client;
-    use mockito::{Server};
-    use crate::orders::{CreateOrderParams, Destination, OrderParams, OrderSide, OrderType, StrategyRoute, StrategyType};
+    use mockito::Server;
+    use tracing_subscriber::fmt::format::FmtSpan;
 
     fn setup_tracing() {
         let _ = tracing_subscriber::fmt()
@@ -377,9 +440,11 @@ mod tests {
             .mock("POST", "/studio/v2/accounts/100000/orders")
             .with_status(201)
             .with_header("content-type", "application/json")
-            .with_body(r#"{
+            .with_body(
+                r#"{
                 "order_id": "abc123"
-            }"#)
+            }"#,
+            )
             .create_async()
             .await;
 
@@ -421,7 +486,8 @@ mod tests {
             .mock("GET", "/studio/v2/accounts/100000/orders/12390213")
             .with_status(200)
             .with_header("content-type", "application/json")
-            .with_body(r#"
+            .with_body(
+                r#"
                 {
                     "order": {
                         "created_at": 0,
@@ -453,7 +519,8 @@ mod tests {
                         "running_position": "100"
                     }
                 }
-            "#)
+            "#,
+            )
             .create_async()
             .await;
 
@@ -471,4 +538,124 @@ mod tests {
         assert_eq!(data.order_id, "12390213");
     }
 
+    #[tokio::test]
+    async fn test_delete_order() {
+        setup_tracing();
+
+        let mut server = Server::new_async().await;
+
+        let _mock = server
+            .mock("DELETE", "/studio/v2/accounts/100000/orders/abc123")
+            .with_status(201)
+            .with_header("content-type", "application/json")
+            .create_async()
+            .await;
+
+        let client = Client::new_with_token(server.url(), "test-token".into());
+
+        let params = OrderParams {
+            account_id: "100000".to_string(),
+            order_id: "abc123".to_string(),
+        };
+
+        let result = client.delete_order(params).await;
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_update_order() {
+        setup_tracing();
+
+        let mut server = Server::new_async().await;
+
+        let _mock = server
+            .mock("PATCH", "/studio/v2/accounts/100000/orders/abc123")
+            .with_status(201)
+            .with_header("content-type", "application/json")
+            .create_async()
+            .await;
+
+        let client = Client::new_with_token(server.url(), "test-token".into());
+
+        let order_params: OrderParams = OrderParams {
+            account_id: "100000".to_string(),
+            order_id: "abc123".to_string()
+        };
+
+        let params = UpdateOrderRequestBody {
+            quantity: "1".to_string(),
+            price: Some("10.00".to_string()),
+            stop_price: None,
+        };
+
+        let result = client.update_order(order_params, params).await;
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_list_orders() {
+        setup_tracing();
+
+        let mut server = Server::new_async().await;
+
+        let _mock = server
+            .mock("GET", "/studio/v2/accounts/100000/orders?from=0&to=0&page_size=1&page_token=string")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
+                r#"
+                {
+                  "data": [
+                    {
+                      "created_at": 0,
+                      "updated_at": 0,
+                      "order_id": "12390213",
+                      "reference_id": "my-order-id-123",
+                      "version": 1,
+                      "account_id": "100000",
+                      "account_number": "ACC0001",
+                      "state": "open",
+                      "status": "new",
+                      "symbol": "AAPL",
+                      "order_type": "limit",
+                      "side": "buy",
+                      "quantity": "100",
+                      "price": "123.99",
+                      "stop_price": "123.99",
+                      "time_in_force": "day",
+                      "average_price": 0,
+                      "filled_quantity": "100",
+                      "order_update_reason": "place",
+                      "text": "string",
+                      "strategy": {
+                        "type": "sor",
+                        "start_at": 0,
+                        "end_at": 0,
+                        "urgency": "moderate"
+                      },
+                      "running_position": "100"
+                    }
+                  ],
+                  "next_page_token": "string"
+                }
+            "#,
+            )
+            .create_async()
+            .await;
+
+        let client = Client::new_with_token(server.url(), "test-token".into());
+
+        let params = ListOrdersParams {
+            from: 0,
+            to: 0,
+            page_size: 1,
+            page_token: "string".to_string(),
+        };
+
+        let result = client.list_orders("100000", params).await;
+        assert!(result.is_ok());
+
+        let data = result.unwrap();
+        assert_eq!(data.data.len(), 1);
+    }
 }
