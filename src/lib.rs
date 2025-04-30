@@ -1,12 +1,12 @@
-mod error;
-mod orders;
-mod authentication;
-mod utils;
-mod account;
-mod instruments;
-mod positions;
-mod websockets;
-mod trades;
+pub mod error;
+pub mod orders;
+pub mod authentication;
+pub mod utils;
+pub mod account;
+pub mod instruments;
+pub mod positions;
+pub mod websockets;
+pub mod trades;
 
 use serde::{Deserialize, Serialize};
 use authentication::token_manager::TokenManager;
