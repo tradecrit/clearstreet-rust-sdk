@@ -32,7 +32,7 @@ async fn test_create_order() {
         client_secret: env::var("CLIENT_SECRET").unwrap().to_string(),
     };
 
-    let client = Client::new(options);
+    let client = Client::init(options).await.expect("Failed to initialize client");
 
     let strategy = SmartOrderRouterStrategy {
         strategy_type: StrategyType::SmartOrderRoute,

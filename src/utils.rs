@@ -1,7 +1,6 @@
 use reqwest::{RequestBuilder, Response};
 use crate::error::{Error, ErrorType};
 
-#[tracing::instrument(skip(built_request), name = "exponential_backoff_request")]
 pub async fn request(built_request: RequestBuilder) -> Result<Response, Error> {
     let mut delay_millis = 50;
     let max_retries = 5;
@@ -29,17 +28,17 @@ pub async fn request(built_request: RequestBuilder) -> Result<Response, Error> {
     Err(Error::new(ErrorType::TimeoutError, "Exhausted retries".into()))
 }
 
-#[tracing::instrument(level="debug", skip(response), name="parse_response")]
 pub async fn parse_response<T: serde::de::DeserializeOwned>(response: Response) -> Result<T, Error> {
     let text = response.text().await.map_err(|e| {
         tracing::error!("Error parsing response to text: {}", e);
         Error::new(ErrorType::ParseError, e.to_string())
     })?;
-
-    tracing::debug!("Response: {}", text);
-
+    
     match serde_json::from_str::<T>(&text) {
         Ok(parsed) => Ok(parsed),
-        Err(e) => Err(e.into())
+        Err(e) => {
+            tracing::error!("Error parsing response: {}", e);
+            Err(e.into())
+        }
     }
 }

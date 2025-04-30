@@ -29,7 +29,7 @@ pub struct ClientOptions {
 impl Default for ClientOptions {
     fn default() -> Self {
         Self {
-            api_url: "https://api.clearstreet.io/studio/v2".to_string(),
+            api_url: "https://api.clearstreet.io".to_string(),
             websocket_url: "wss://api.clearstreet.io/studio/v2/ws".to_string(),
             client_id: "<your_client_id>".to_string(),
             client_secret: "<your_client_secret>".to_string(),
@@ -39,18 +39,19 @@ impl Default for ClientOptions {
 
 
 impl Client {
-    pub fn new(client_options: ClientOptions) -> Self {
-        let token_manager: TokenManager = TokenManager::new(
+    pub async fn init(client_options: ClientOptions) -> Result<Self, Error> {
+        let token_manager: TokenManager = TokenManager::init(
             client_options.client_id.clone(),
             client_options.client_secret.clone(),
             client_options.api_url.clone(),
-            client_options.api_url.clone()
-        );
+        ).await?;
 
-        Self {
+        let client = Self {
             client_options,
-            token_manager
-        }
+            token_manager,
+        };
+
+        Ok(client)
     }
 
     pub async fn build_authenticated_client(&self) -> Result<reqwest::Client, Error> {

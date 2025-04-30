@@ -22,13 +22,12 @@ pub struct Instrument {
 
 impl Client {
     #[tracing::instrument(skip(self))]
-    pub async fn get_instrument(&self, symbol: &str, symbol_format: SymbolFormat) -> Result<Instrument, Error> {
+    pub async fn get_instrument(&self, symbol: &str) -> Result<Instrument, Error> {
         let client = self.build_authenticated_client().await?;
 
         let url = format!("{}/studio/v2/instruments/{}",  self.client_options.api_url, symbol);
 
-        let request_builder = client.get(&url)
-            .query(&[("symbol_format", symbol_format)]);
+        let request_builder = client.get(&url);
 
         let response: Response = utils::request(request_builder).await?;
 

@@ -7,9 +7,9 @@ use crate::utils::{parse_response};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Account {
-    pub account_id: i64,
+    pub account_id: String,
     pub account_number: String,
-    pub entity_id: i64,
+    pub entity_id: String,
     pub name: String
 }
 
@@ -23,7 +23,7 @@ impl Client {
     pub async fn get_account(&self, account_id: &str) -> Result<Account, Error> {
         let client = self.build_authenticated_client().await?;
 
-        let url = format!("{}/accounts/{}",  self.client_options.api_url, account_id);
+        let url = format!("{}/studio/v2/accounts/{}",  self.client_options.api_url, account_id);
 
         let request_builder = client.get(&url);
 
@@ -44,7 +44,7 @@ impl Client {
     pub async fn get_accounts(&self) -> Result<GetAccountsResponse, Error> {
         let client = self.build_authenticated_client().await?;
 
-        let url = format!("{}/accounts",  self.client_options.api_url);
+        let url = format!("{}/studio/v2/accounts",  self.client_options.api_url);
 
         let request_builder = client.get(&url);
 
@@ -91,7 +91,7 @@ use crate::Client;
         let mut server = Server::new_async().await;
 
         let _mock = server
-            .mock("GET", "/accounts/123")
+            .mock("GET", "/studio/v2/accounts/123")
             .with_status(200)
             .with_header("content-type", "application/json")
             .with_body(r#"{
@@ -110,7 +110,7 @@ use crate::Client;
         assert!(result.is_ok());
 
         let account = result.unwrap();
-        assert_eq!(account.account_id, 123);
+        assert_eq!(account.account_id, "123");
     }
 
     #[tokio::test]
@@ -120,7 +120,7 @@ use crate::Client;
         let mut server = Server::new_async().await;
 
         let _mock = server
-            .mock("GET", "/accounts")
+            .mock("GET", "/studio/v2/accounts")
             .with_status(200)
             .with_header("content-type", "application/json")
             .with_body(r#"{

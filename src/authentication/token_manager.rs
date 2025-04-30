@@ -1,5 +1,7 @@
+use std::fmt::Debug;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
+use reqwest::header::{ACCEPT, CONTENT_TYPE};
 use tokio::sync::RwLock;
 
 use crate::error::{BrokerApiError, Error};
@@ -15,13 +17,17 @@ struct Token {
 }
 
 /// Manages OAuth2 access tokens, including automatic refresh when expired.
-#[derive(Debug)]
 pub struct TokenManager {
     client_id: String,
     client_secret: String,
-    api_url: String,
     audience: String,
     token: Arc<RwLock<Option<Token>>>,
+}
+
+impl Debug for TokenManager {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "TokenManager {{ client_id: **REDACTED**, client_secret: **REDACTED**, audience: {}, token: **REDACTED** }}", self.audience)
+    }
 }
 
 /// Request body for fetching a new token.
@@ -49,14 +55,25 @@ impl TokenManager {
     /// * `client_secret` - OAuth2 client secret.
     /// * `api_url` - Base URL of the authentication server.
     /// * `audience` - API audience identifier.
-    pub fn new(client_id: String, client_secret: String, api_url: String, audience: String) -> Self {
-        Self {
-            client_id,
-            client_secret,
-            api_url,
-            audience,
+    /// Asynchronously creates a new `TokenManager` and immediately fetches a token.
+    pub async fn init(client_id: String, client_secret: String, audience: String) -> Result<Self, Error> {
+        let manager = TokenManager {
+            client_id: client_id.clone(),
+            client_secret: client_secret.clone(),
+            audience: audience.clone(),
             token: Arc::new(RwLock::new(None)),
-        }
+        };
+
+        let token_response: TokenResponse = manager.fetch_new_token().await?;
+
+        let new_token = Token {
+            access_token: token_response.access_token.clone(),
+            expires_at: Instant::now() + Duration::from_secs(token_response.expires_in.saturating_sub(60)),
+        };
+
+        *manager.token.write().await = Some(new_token);
+
+        Ok(manager)
     }
 
     /// Retrieves a valid access token.
@@ -109,14 +126,17 @@ impl TokenManager {
             audience: self.audience.clone(),
         };
 
-        let url = format!("{}/oauth/token/", self.api_url);
+        let url = "https://auth.clearstreet.io/oauth/token";
 
         let client = reqwest::Client::new();
+
+        let mut headers = reqwest::header::HeaderMap::new();
+        headers.insert(ACCEPT, "application/json".parse().unwrap());
+        headers.insert(CONTENT_TYPE, "application/json".parse().unwrap());
+
         let response = client
-            .post(&url)
-            .header("accept", "application/json")
-            .header("content-type", "application/json")
-            .header("user-agent", "clearstreet-sdk")
+            .post(url)
+            .headers(headers)
             .json(&body)
             .send()
             .await?;
@@ -156,7 +176,6 @@ impl TokenManager {
         Self {
             client_id: "".to_string(),
             client_secret: "".to_string(),
-            api_url: "".to_string(),
             audience: "".to_string(),
             token: Arc::new(RwLock::new(Some(static_token))),
         }
