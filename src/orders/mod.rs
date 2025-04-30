@@ -246,13 +246,14 @@ pub struct CreateOrderParams {
     #[serde(rename = "side")]
     pub order_side: OrderSide,
     pub quantity: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub price: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub stop_price: Option<String>,
-    pub time_in_force: Option<TimeInForce>,
+    pub time_in_force: TimeInForce,
     pub symbol: String,
     pub symbol_format: SymbolFormat,
-    #[serde(rename = "strategy")]
-    pub routing_strategy: Option<Strategy>,
+    pub strategy: Strategy,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -341,8 +342,6 @@ impl Client {
             "{}/studio/v2/accounts/{}/orders",
             self.client_options.api_url, params.account_id
         );
-
-        let string_params = serde_json::to_string(&params)?;
 
         let request_builder: RequestBuilder = client.post(&url).json(&params);
 
