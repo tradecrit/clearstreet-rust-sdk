@@ -506,7 +506,7 @@ impl Client {
 
 #[cfg(test)]
 mod tests {
-    use crate::orders::{CreateOrderParams, Destination, DirectMarketAccessStrategy, ListOrdersParams, OrderParams, OrderSide, OrderType, StrategyType, UpdateOrderRequestBody};
+    use crate::orders::{CreateOrderParams, Destination, DirectMarketAccessStrategy, ListOrdersParams, OrderParams, OrderSide, OrderType, StrategyType, TimeInForce, UpdateOrderRequestBody};
     use crate::Client;
     use mockito::Server;
     use tracing_subscriber::fmt::format::FmtSpan;
@@ -559,10 +559,10 @@ mod tests {
             quantity: "1".to_string(),
             price: Some("10.00".to_string()),
             stop_price: None,
-            time_in_force: None,
+            time_in_force: TimeInForce::Day,
             symbol: "AAPL".to_string(),
             symbol_format: Default::default(),
-            routing_strategy: Some(DirectMarketAccess(strategy)),
+            strategy: DirectMarketAccess(strategy),
         };
 
         let result = client.create_order(params).await;
