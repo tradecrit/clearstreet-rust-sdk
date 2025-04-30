@@ -2,22 +2,6 @@ use std::fmt::Display;
 use serde::{Deserialize, Serialize};
 use tokio_tungstenite::tungstenite;
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct BrokerApiError {
-    #[serde(rename = "type")]
-    pub error_type: String,
-    pub title: String,
-    pub status: i64,
-    pub detail: String,
-    pub instance: String,
-}
-
-impl Display for BrokerApiError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Error {}: {} - {}", self.status, self.title, self.detail)
-    }
-}
-
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq)]
 #[allow(clippy::enum_variant_names)]
 pub enum ErrorType {

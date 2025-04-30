@@ -1,5 +1,5 @@
 use crate::error::ErrorType::HttpError;
-use crate::error::{BrokerApiError, Error};
+use crate::error::{Error};
 use crate::{utils, Client};
 use reqwest::Response;
 use serde::{Deserialize, Serialize};
@@ -35,9 +35,9 @@ impl Client {
             return Ok(body);
         }
 
-        let broker_error: BrokerApiError = parse_response(response).await?;
-        tracing::error!("{}", broker_error);
-        Err(Error::new(HttpError, broker_error.to_string()))
+        let status = response.status();
+        let error_body = response.text().await?;
+        Err(Error::new(HttpError, format!("Error: {} - {}", status, error_body)))
     }
 
     #[tracing::instrument(skip(self))]
@@ -56,9 +56,9 @@ impl Client {
             return Ok(body);
         }
 
-        let broker_error: BrokerApiError = parse_response(response).await?;
-        tracing::error!("{}", broker_error);
-        Err(Error::new(HttpError, broker_error.to_string()))
+        let status = response.status();
+        let error_body = response.text().await?;
+        Err(Error::new(HttpError, format!("Error: {} - {}", status, error_body)))
     }
 }
 

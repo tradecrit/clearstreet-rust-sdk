@@ -1,7 +1,7 @@
 use reqwest::Response;
 use serde::{Deserialize, Serialize};
 use crate::{utils, Client};
-use crate::error::{BrokerApiError, Error};
+use crate::error::{Error};
 use crate::error::ErrorType::HttpError;
 use crate::orders::SymbolFormat;
 use crate::utils::parse_response;
@@ -37,8 +37,8 @@ impl Client {
             return Ok(body);
         }
 
-        let broker_error: BrokerApiError = parse_response(response).await?;
-        tracing::error!("{}", broker_error);
-        Err(Error::new(HttpError, broker_error.to_string()))
+        let status = response.status();
+        let error_body = response.text().await?;
+        Err(Error::new(HttpError, format!("Error: {} - {}", status, error_body)))
     }
 }

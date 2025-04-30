@@ -4,7 +4,7 @@ use std::time::{Duration, Instant};
 use reqwest::header::{ACCEPT, CONTENT_TYPE};
 use tokio::sync::RwLock;
 
-use crate::error::{BrokerApiError, Error};
+use crate::error::{Error};
 use serde::{Deserialize, Serialize};
 use crate::error::ErrorType::HttpError;
 use crate::utils;
@@ -142,13 +142,9 @@ impl TokenManager {
             .await?;
 
         if !response.status().is_success() {
-            tracing::error!("Status: {:?}", response.status());
-
-            let api_error: BrokerApiError = response.json().await?;
-
-            tracing::error!("{:?}", api_error);
-
-            return Err(Error::new(HttpError, api_error.to_string()));
+            let status = response.status();
+            let error_body = response.text().await?;
+            return Err(Error::new(HttpError, format!("Error: {} - {}", status, error_body)));
         }
 
         let body: TokenResponse = utils::parse_response(response).await?;

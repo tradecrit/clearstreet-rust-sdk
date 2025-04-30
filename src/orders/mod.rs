@@ -1,4 +1,3 @@
-use crate::error::BrokerApiError;
 use crate::error::ErrorType::HttpError;
 use crate::utils;
 use crate::utils::parse_response;
@@ -94,8 +93,11 @@ pub struct DirectMarketAccessStrategy {
 pub struct SmartOrderRouterStrategy {
     #[serde(rename = "type")]
     pub strategy_type: StrategyType,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub start_at: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub end_at: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub urgency: Option<Urgency>,
 }
 
@@ -103,10 +105,15 @@ pub struct SmartOrderRouterStrategy {
 pub struct VolumeWeightedAveragePriceStrategy {
     #[serde(rename = "type")]
     pub strategy_type: StrategyType,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub start_at: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub end_at: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub urgency: Option<Urgency>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub min_percent: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub max_percent: Option<i64>,
 }
 
@@ -114,10 +121,15 @@ pub struct VolumeWeightedAveragePriceStrategy {
 pub struct TimeWeightedAveragePriceStrategy {
     #[serde(rename = "type")]
     pub strategy_type: StrategyType,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub start_at: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub end_at: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub urgency: Option<Urgency>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub min_percent: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub max_percent: Option<i64>,
 }
 
@@ -125,8 +137,11 @@ pub struct TimeWeightedAveragePriceStrategy {
 pub struct PercentageOfVolumeStrategy {
     #[serde(rename = "type")]
     pub strategy_type: StrategyType,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub start_at: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub end_at: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub urgency: Option<Urgency>,
     pub target_percent: i64,
 }
@@ -135,10 +150,15 @@ pub struct PercentageOfVolumeStrategy {
 pub struct ArrivalPrice {
     #[serde(rename = "type")]
     pub strategy_type: StrategyType,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub start_at: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub end_at: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub urgency: Option<Urgency>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub min_percent: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub max_percent: Option<i64>,
 }
 
@@ -146,9 +166,13 @@ pub struct ArrivalPrice {
 pub struct DarkStrategy {
     #[serde(rename = "type")]
     pub strategy_type: StrategyType,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub start_at: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub end_at: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub urgency: Option<Urgency>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub max_percent: Option<i64>,
 }
 
@@ -185,6 +209,7 @@ pub enum StrategyType {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[serde(untagged)]
 pub enum Strategy {
     SmartOrderRoute(SmartOrderRouterStrategy), // Smart Order Router
     Dark(DarkStrategy), // Dark Pool
@@ -274,7 +299,7 @@ pub struct Order {
     pub price: Option<String>,
     pub stop_price: Option<String>,
     pub time_in_force: TimeInForce,
-    pub average_price: i64,
+    pub average_price: String,
     pub filled_quantity: String,
     pub order_update_reason: String,
     pub text: String,
@@ -306,7 +331,7 @@ impl Client {
     ///
     /// * `Result<CreateOrderResponse, Error>` - Ok if the order was created, Err if there was an error
     ///
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip(self, params))]
     pub async fn create_order(&self, params: CreateOrderParams) -> Result<CreateOrderResponse, Error> {
         tracing::debug!("create_order: {:?}", params);
 
@@ -316,6 +341,8 @@ impl Client {
             "{}/studio/v2/accounts/{}/orders",
             self.client_options.api_url, params.account_id
         );
+
+        let string_params = serde_json::to_string(&params)?;
 
         let request_builder: RequestBuilder = client.post(&url).json(&params);
 
@@ -327,9 +354,9 @@ impl Client {
             return Ok(body);
         }
 
-        let broker_error: BrokerApiError = parse_response(response).await?;
-        tracing::error!("{}", broker_error);
-        Err(Error::new(HttpError, broker_error.to_string()))
+        let status = response.status();
+        let error_body = response.text().await?;
+        Err(Error::new(HttpError, format!("Error: {} - {}", status, error_body)))
     }
 
     /// Gets an order by id. There is currently a problem with the documents that show
@@ -343,7 +370,7 @@ impl Client {
     ///
     /// * `Result<Order, Error>` - Ok if the order was found, Err if there was an error
     ///
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip(self, params))]
     pub async fn get_order(&self, params: OrderParams) -> Result<Order, Error> {
         tracing::debug!("get_order: {:?}", params);
 
@@ -364,9 +391,9 @@ impl Client {
             return Ok(body.order);
         }
 
-        let broker_error: BrokerApiError = parse_response(response).await?;
-        tracing::error!("{}", broker_error);
-        Err(Error::new(HttpError, broker_error.to_string()))
+        let status = response.status();
+        let error_body = response.text().await?;
+        Err(Error::new(HttpError, format!("Error: {} - {}", status, error_body)))
     }
 
     /// Deletes an order. NOTE this attempts to cancel the order, that doesn't mean that is does.
@@ -380,7 +407,7 @@ impl Client {
     ///
     /// * `Result<(), Error>` - Ok if the order was deleted, Err if there was an error
     ///
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip(self, params))]
     pub async fn delete_order(&self, params: OrderParams) -> Result<(), Error> {
         tracing::debug!("delete_order: {:?}", params);
 
@@ -399,9 +426,9 @@ impl Client {
             return Ok(());
         }
 
-        let broker_error: BrokerApiError = parse_response(response).await?;
-        tracing::error!("{}", broker_error);
-        Err(Error::new(HttpError, broker_error.to_string()))
+        let status = response.status();
+        let error_body = response.text().await?;
+        Err(Error::new(HttpError, format!("Error: {} - {}", status, error_body)))
     }
 
     /// Updates an order. The order is updated in the broker's system and is not
@@ -416,7 +443,7 @@ impl Client {
     ///
     /// * `Result<(), Error>` - Ok if the order was updated, Err if there was an error
     ///
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip(self, params, body))]
     pub async fn update_order(
         &self,
         params: OrderParams,
@@ -440,12 +467,12 @@ impl Client {
             return Ok(());
         }
 
-        let broker_error: BrokerApiError = parse_response(response).await?;
-        tracing::error!("{}", broker_error);
-        Err(Error::new(HttpError, broker_error.to_string()))
+        let status = response.status();
+        let error_body = response.text().await?;
+        Err(Error::new(HttpError, format!("Error: {} - {}", status, error_body)))
     }
 
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip(self, account_id, params))]
     pub async fn list_orders(
         &self,
         account_id: &str,
@@ -472,9 +499,9 @@ impl Client {
             return Ok(body);
         }
 
-        let broker_error: BrokerApiError = parse_response(response).await?;
-        tracing::error!("{}", broker_error);
-        Err(Error::new(HttpError, broker_error.to_string()))
+        let status = response.status();
+        let error_body = response.text().await?;
+        Err(Error::new(HttpError, format!("Error: {} - {}", status, error_body)))
     }
 }
 

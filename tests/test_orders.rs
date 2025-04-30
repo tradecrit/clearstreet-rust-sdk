@@ -26,10 +26,9 @@ async fn test_create_order() {
     setup_tracing();
 
     let options = ClientOptions {
-        api_url: "https://api.clearstreet.io/studio/v2".to_string(),
-        websocket_url: "wss://api.clearstreet.io/studio/v2/ws".to_string(),
         client_id: env::var("CLIENT_ID").unwrap().to_string(),
         client_secret: env::var("CLIENT_SECRET").unwrap().to_string(),
+        ..Default::default()
     };
 
     let client = Client::init(options).await.expect("Failed to initialize client");
@@ -47,17 +46,21 @@ async fn test_create_order() {
         order_type: OrderType::Limit,
         order_side: OrderSide::Buy,
         quantity: "1".to_string(),
-        price: Some("10.00".to_string()),
+        price: Some("100.00".to_string()),
         stop_price: None,
         time_in_force: None,
-        symbol: "AAPL".to_string(),
+        symbol: "COST".to_string(),
         symbol_format: Default::default(),
         routing_strategy: Some(Strategy::SmartOrderRoute(strategy)),
     };
 
     let result = client.create_order(params).await;
-    assert!(result.is_ok());
 
+    if let Err(err) = result {
+        tracing::error!(error = ?err, "Error creating order");
+        panic!("Error creating order: {:?}", err);
+    }
+    
     let data = result.unwrap();
 
     println!("{:#?}", data);
