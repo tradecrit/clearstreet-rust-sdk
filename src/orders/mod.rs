@@ -307,7 +307,7 @@ impl Client {
     /// * `Result<CreateOrderResponse, Error>` - Ok if the order was created, Err if there was an error
     ///
     #[tracing::instrument(skip(self))]
-    pub async fn create_order(&self, params: CreateOrderParams, ) -> Result<CreateOrderResponse, Error> {
+    pub async fn create_order(&self, params: CreateOrderParams) -> Result<CreateOrderResponse, Error> {
         tracing::debug!("create_order: {:?}", params);
 
         let client = self.build_authenticated_client().await?;
