@@ -300,11 +300,11 @@ pub struct Order {
     pub price: Option<String>,
     pub stop_price: Option<String>,
     pub time_in_force: TimeInForce,
-    pub average_price: String,
+    pub average_price: f64, // funny this is the only one that is a float
     pub filled_quantity: String,
     pub order_update_reason: String,
     pub text: String,
-    pub strategy: Option<Value>,
+    pub strategy: Option<Strategy>,
     pub running_position: String,
 }
 

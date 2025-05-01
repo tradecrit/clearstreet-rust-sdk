@@ -2,7 +2,7 @@ use std::env;
 use dotenvy::dotenv;
 use tracing_subscriber::fmt::format::FmtSpan;
 use clearstreet::{Client, ClientOptions};
-use clearstreet::orders::{CreateOrderParams, OrderSide, OrderType, SmartOrderRouterStrategy, Strategy, StrategyType, TimeInForce};
+use clearstreet::orders::{CreateOrderParams, OrderParams, OrderSide, OrderType, SmartOrderRouterStrategy, Strategy, StrategyType, TimeInForce};
 use uuid::Uuid;
 
 fn setup_tracing() {
@@ -55,6 +55,39 @@ async fn test_create_order() {
     };
 
     let result = client.create_order(params).await;
+
+    if let Err(err) = result {
+        tracing::error!(error = ?err, "Error creating order");
+        panic!("Error creating order: {:?}", err);
+    }
+
+    let data = result.unwrap();
+
+    println!("{:#?}", data);
+}
+
+#[tokio::test]
+async fn test_get_order() {
+    dotenv().ok().unwrap_or_default();
+
+    setup_tracing();
+
+    let options = ClientOptions {
+        client_id: env::var("CLIENT_ID").unwrap().to_string(),
+        client_secret: env::var("CLIENT_SECRET").unwrap().to_string(),
+        ..Default::default()
+    };
+
+    let client = Client::init(options).await.expect("Failed to initialize client");
+
+    let params: OrderParams = {
+        OrderParams {
+            order_id: "20250501_113350_1".to_string(),
+            account_id: env::var("ACCOUNT_ID").unwrap().to_string(),
+        }
+    };
+
+    let result = client.get_order(params).await;
 
     if let Err(err) = result {
         tracing::error!(error = ?err, "Error creating order");
