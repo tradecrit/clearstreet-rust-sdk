@@ -5,7 +5,6 @@ use crate::Client;
 use crate::Error;
 use reqwest::{RequestBuilder, Response};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
