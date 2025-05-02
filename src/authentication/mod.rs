@@ -8,14 +8,14 @@ use crate::error::ErrorType::HttpError;
 use crate::{utils, Client};
 
 /// Represents an access token and its expiration time.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Token {
     pub access_token: String,
     pub expires_at: Instant,
 }
 
 /// Request body for fetching a new token.
-#[derive(Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct TokenRequest {
     grant_type: String,
     client_id: String,
@@ -24,7 +24,7 @@ struct TokenRequest {
 }
 
 /// Response body when fetching a new token.
-#[derive(Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TokenResponse {
     pub access_token: String,
     pub expires_in: u64,
