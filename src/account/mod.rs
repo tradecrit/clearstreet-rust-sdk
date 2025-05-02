@@ -91,13 +91,13 @@ use crate::Client;
         let mut server = Server::new_async().await;
 
         let _mock = server
-            .mock("GET", "/studio/v2/accounts/123")
+            .mock("GET", "/studio/v2/accounts/123abc")
             .with_status(200)
             .with_header("content-type", "application/json")
             .with_body(r#"{
-                "account_id": 123,
+                "account_id": "123abc",
                 "account_number": "ACC456",
-                "entity_id": 456,
+                "entity_id": "456abc",
                 "name": "Test Account"
             }"#)
             .create_async()
@@ -105,12 +105,12 @@ use crate::Client;
 
         let client = Client::new_with_token(server.url(), "".to_string(), "test-token".into());
 
-        let result = client.get_account("123").await;
+        let result = client.get_account("123abc").await;
 
         assert!(result.is_ok());
 
         let account = result.unwrap();
-        assert_eq!(account.account_id, "123");
+        assert_eq!(account.account_id, "123abc");
     }
 
     #[tokio::test]
@@ -126,9 +126,9 @@ use crate::Client;
             .with_body(r#"{
             "data": [
                 {
-                    "account_id": 123,
+                    "account_id": "123abc",
                     "account_number": "ACC456",
-                    "entity_id": 456,
+                    "entity_id": "456abc",
                     "name": "Test Account"
                 }
             ]

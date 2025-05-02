@@ -24,6 +24,7 @@ pub struct ClientOptions {
     pub websocket_url: String,
     pub client_id: String,
     pub client_secret: String,
+    pub account_id: String,
 }
 
 impl Default for ClientOptions {
@@ -33,6 +34,7 @@ impl Default for ClientOptions {
             websocket_url: "wss://api.clearstreet.io/studio/v2/ws".to_string(),
             client_id: "<your_client_id>".to_string(),
             client_secret: "<your_client_secret>".to_string(),
+            account_id: "<your_account_id>".to_string(),
         }
     }
 }
@@ -78,6 +80,7 @@ impl Client {
             websocket_url,
             client_id: "<your_client_id>".to_string(),
             client_secret: "<your_client_secret>".to_string(),
+            account_id: "<your_account_id>".to_string(),
         };
 
         Self {

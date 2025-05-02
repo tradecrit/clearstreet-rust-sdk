@@ -27,9 +27,16 @@ pub enum PayloadType {
     ErrorNotice,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct Heartbeat {
+    #[serde(rename = "type")]
+    pub payload_type: PayloadType
+}
+
 // All message formats and types, along with their serialization
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(tag = "payload.type", rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 pub enum ActivityMessage {
     SubscribeActivityAck(SubscribeActivityAck),
     ReplayComplete(ReplayComplete),
@@ -38,8 +45,22 @@ pub enum ActivityMessage {
     PositionUpdate(PositionUpdate),
     BuyingPowerUpdate(BuyingPowerUpdate),
     LocateInventoryUpdate(LocateInventoryUpdate),
+    ErrorNotice(ErrorNotice),
+    Heartbeat(Heartbeat)
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ErrorNotice {
+    pub timestamp: i64,
+    pub payload: ErrorNoticePayload,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ErrorNoticePayload {
+    #[serde(rename = "type")]
+    pub payload_type: PayloadType,
+    pub details: String,
+}
 
 // All allowed outgoing message formats and types, along with their serialization
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -50,6 +71,7 @@ pub struct SubscribeActivity {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SubscribeActivityPayload {
+    #[serde(rename = "type")]
     pub payload_type: PayloadType,
     pub account_id: String,
 }
@@ -65,7 +87,6 @@ pub struct SubscribeActivityAck {
 pub struct SubscribeActivityAckPayload {
     #[serde(rename = "type")]
     pub payload_type: PayloadType,
-    pub account_id: String,
     pub success: bool,
     pub details: String,
 }
