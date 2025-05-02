@@ -332,10 +332,10 @@ impl Client {
     /// * `Result<CreateOrderResponse, Error>` - Ok if the order was created, Err if there was an error
     ///
     #[tracing::instrument(skip(self, params))]
-    pub async fn create_order(&self, params: CreateOrderParams) -> Result<CreateOrderResponse, Error> {
+    pub async fn create_order(&self, token: &str, params: CreateOrderParams) -> Result<CreateOrderResponse, Error> {
         tracing::debug!("create_order: {:?}", params);
 
-        let client = self.build_authenticated_client().await?;
+        let client = self.build_authenticated_client(token).await?;
 
         let url = format!(
             "{}/studio/v2/accounts/{}/orders",
@@ -369,10 +369,10 @@ impl Client {
     /// * `Result<Order, Error>` - Ok if the order was found, Err if there was an error
     ///
     #[tracing::instrument(skip(self, params))]
-    pub async fn get_order(&self, params: OrderParams) -> Result<Order, Error> {
+    pub async fn get_order(&self, token: &str, params: OrderParams) -> Result<Order, Error> {
         tracing::debug!("get_order: {:?}", params);
 
-        let client = self.build_authenticated_client().await?;
+        let client = self.build_authenticated_client(token).await?;
 
         let url = format!(
             "{}/studio/v2/accounts/{}/orders/{}",
@@ -406,10 +406,10 @@ impl Client {
     /// * `Result<(), Error>` - Ok if the order was deleted, Err if there was an error
     ///
     #[tracing::instrument(skip(self, params))]
-    pub async fn delete_order(&self, params: OrderParams) -> Result<(), Error> {
+    pub async fn delete_order(&self, token: &str, params: OrderParams) -> Result<(), Error> {
         tracing::debug!("delete_order: {:?}", params);
 
-        let client = self.build_authenticated_client().await?;
+        let client = self.build_authenticated_client(token).await?;
 
         let url: String = format!(
             "{}/studio/v2/accounts/{}/orders/{}",
@@ -444,13 +444,14 @@ impl Client {
     #[tracing::instrument(skip(self, params, body))]
     pub async fn update_order(
         &self,
+        token: &str,
         params: OrderParams,
         body: UpdateOrderRequestBody,
     ) -> Result<(), Error> {
         tracing::debug!("update_order: {:?}", params);
         tracing::debug!("update_order_request: {:?}", body);
 
-        let client = self.build_authenticated_client().await?;
+        let client = self.build_authenticated_client(token).await?;
 
         let url: String = format!(
             "{}/studio/v2/accounts/{}/orders/{}",
@@ -473,12 +474,13 @@ impl Client {
     #[tracing::instrument(skip(self, account_id, params))]
     pub async fn list_orders(
         &self,
+        token: &str,
         account_id: &str,
         params: ListOrdersParams,
     ) -> Result<ListOrdersResponse, Error> {
         tracing::debug!("get_orders");
 
-        let client = self.build_authenticated_client().await?;
+        let client = self.build_authenticated_client(token).await?;
 
         let url: String = format!("{}/studio/v2/accounts/{}/orders",  self.client_options.api_url, account_id);
 

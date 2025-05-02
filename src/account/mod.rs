@@ -20,8 +20,8 @@ pub struct GetAccountsResponse {
 
 impl Client {
     #[tracing::instrument(skip(self))]
-    pub async fn get_account(&self, account_id: &str) -> Result<Account, Error> {
-        let client = self.build_authenticated_client().await?;
+    pub async fn get_account(&self, token: &str, account_id: &str) -> Result<Account, Error> {
+        let client = self.build_authenticated_client(token).await?;
 
         let url = format!("{}/studio/v2/accounts/{}",  self.client_options.api_url, account_id);
 
@@ -41,8 +41,8 @@ impl Client {
     }
 
     #[tracing::instrument(skip(self))]
-    pub async fn get_accounts(&self) -> Result<GetAccountsResponse, Error> {
-        let client = self.build_authenticated_client().await?;
+    pub async fn get_accounts(&self, token: &str) -> Result<GetAccountsResponse, Error> {
+        let client = self.build_authenticated_client(token).await?;
 
         let url = format!("{}/studio/v2/accounts",  self.client_options.api_url);
 

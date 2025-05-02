@@ -31,7 +31,7 @@ async fn test_create_order() {
         ..Default::default()
     };
 
-    let client = Client::init(options).await.expect("Failed to initialize client");
+    let client = Client::new(options);
 
     let strategy = SmartOrderRouterStrategy {
         strategy_type: StrategyType::SmartOrderRoute,
@@ -54,7 +54,7 @@ async fn test_create_order() {
         strategy: Strategy::SmartOrderRoute(strategy),
     };
 
-    let result = client.create_order(params).await;
+    let result = client.create_order("", params).await;
 
     if let Err(err) = result {
         tracing::error!(error = ?err, "Error creating order");
@@ -78,7 +78,7 @@ async fn test_get_order() {
         ..Default::default()
     };
 
-    let client = Client::init(options).await.expect("Failed to initialize client");
+    let client = Client::new(options);
 
     let params: OrderParams = {
         OrderParams {
@@ -87,7 +87,7 @@ async fn test_get_order() {
         }
     };
 
-    let result = client.get_order(params).await;
+    let result = client.get_order("", params).await;
 
     if let Err(err) = result {
         tracing::error!(error = ?err, "Error creating order");

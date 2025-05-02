@@ -28,9 +28,8 @@ pub struct ListPositionsResponse {
 }
 
 impl Client {
-    pub async fn get_position(&self, params: GetPositionParams) -> Result<Position, Error> {
-        //      --url https://api.clearstreet.io/studio/v2/accounts/asdasd/positions/APL \
-        let client = self.build_authenticated_client().await?;
+    pub async fn get_position(&self, token: &str, params: GetPositionParams) -> Result<Position, Error> {
+        let client = self.build_authenticated_client(token).await?;
 
         let url = format!("{}/studio/v2/accounts/{}/positions/{}",  self.client_options.api_url, params.account_id, params.symbol);
 
@@ -49,10 +48,10 @@ impl Client {
         Err(Error::new(HttpError, format!("Error: {} - {}", status, error_body)))
     }
 
-    pub async fn list_positions(&self, account_id: &str) -> Result<ListPositionsResponse, Error> {
+    pub async fn list_positions(&self, token: &str, account_id: &str) -> Result<ListPositionsResponse, Error> {
         tracing::debug!("list_positions: {:?}", account_id);
 
-        let client = self.build_authenticated_client().await?;
+        let client = self.build_authenticated_client(token).await?;
 
         let url = format!("{}/studio/v2/accounts/{}/positions",  self.client_options.api_url, account_id);
 

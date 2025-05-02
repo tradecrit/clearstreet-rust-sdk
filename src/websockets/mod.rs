@@ -90,12 +90,10 @@ impl Client {
     // On failure/disconnection, it will retry the connection.
     // Authentication is handled by the TokenManager and has to be sent to establish the connection.
     // API hard times out at 24 hours.
-    pub async fn connect_websocket(&self) -> Result<WebsocketStream, Error> {
+    pub async fn connect_websocket(&self, token: &str) -> Result<WebsocketStream, Error> {
         tracing::debug!("Creating websocket session");
 
         tracing::debug!("Handling websocket connection establish");
-
-        let bearer_token: String = self.token_manager.get_token().await?;
 
         let (ws_stream, _) = connect_async(self.client_options.websocket_url.clone()).await?;
 
@@ -105,7 +103,7 @@ impl Client {
         // Task to send messages from outbound channel to websocket
         // We initialize once with the auth message and that's it.
         let authed_subscribe = SubscribeActivity {
-            authorization: bearer_token,
+            authorization: token.to_string(),
             payload: SubscribeActivityPayload {
                 payload_type: PayloadType::SubscribeActivity,
                 account_id: self.client_options.account_id.clone(),

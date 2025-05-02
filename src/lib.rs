@@ -9,13 +9,11 @@ pub mod websockets;
 pub mod trades;
 
 use serde::{Deserialize, Serialize};
-use authentication::token_manager::TokenManager;
 use error::Error;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Client {
     pub client_options: ClientOptions,
-    pub token_manager: TokenManager, // not clone, otherwise your tokens will break
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -41,23 +39,13 @@ impl Default for ClientOptions {
 
 
 impl Client {
-    pub async fn init(client_options: ClientOptions) -> Result<Self, Error> {
-        let token_manager: TokenManager = TokenManager::init(
-            client_options.client_id.clone(),
-            client_options.client_secret.clone(),
-            client_options.api_url.clone(),
-        ).await?;
-
-        let client = Self {
-            client_options,
-            token_manager,
-        };
-
-        Ok(client)
+    pub fn new(client_options: ClientOptions) -> Self {
+        Self {
+            client_options
+        }
     }
 
-    pub async fn build_authenticated_client(&self) -> Result<reqwest::Client, Error> {
-        let token = self.token_manager.get_token().await?;
+    pub async fn build_authenticated_client(&self, token: &str) -> Result<reqwest::Client, Error> {
 
         let mut headers = reqwest::header::HeaderMap::new();
         headers.insert("authorization", format!("Bearer {}", token).parse().unwrap());
@@ -71,21 +59,3 @@ impl Client {
     }
 }
 
-impl Client {
-    pub fn new_with_token(api_url: String, websocket_url: String, token: String) -> Self {
-        let token_manager = TokenManager::with_static_token(token);
-        
-        let client_options = ClientOptions {
-            api_url,
-            websocket_url,
-            client_id: "<your_client_id>".to_string(),
-            client_secret: "<your_client_secret>".to_string(),
-            account_id: "<your_account_id>".to_string(),
-        };
-
-        Self {
-            client_options,
-            token_manager,
-        }
-    }
-}

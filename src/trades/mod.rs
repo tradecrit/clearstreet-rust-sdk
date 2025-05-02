@@ -26,10 +26,10 @@ pub struct GetTradeRequest {
 }
 
 impl Client {
-    pub async fn get_trade(&self,  get_trade_request: GetTradeRequest) -> Result<Trade, Error> {
-        let url = format!("{}/studio/v2/accounts/{}/trades/{}", self.client_options.api_url, get_trade_request.account_id, get_trade_request.trade_id);
+    pub async fn get_trade(&self, token: &str, params: GetTradeRequest) -> Result<Trade, Error> {
+        let url = format!("{}/studio/v2/accounts/{}/trades/{}", self.client_options.api_url, params.account_id, params.trade_id);
 
-        let client = self.build_authenticated_client().await?;
+        let client = self.build_authenticated_client(token).await?;
 
         let request_builder: RequestBuilder = client.get(&url);
 

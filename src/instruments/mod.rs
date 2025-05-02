@@ -22,8 +22,8 @@ pub struct Instrument {
 
 impl Client {
     #[tracing::instrument(skip(self))]
-    pub async fn get_instrument(&self, symbol: &str) -> Result<Instrument, Error> {
-        let client = self.build_authenticated_client().await?;
+    pub async fn get_instrument(&self, token: &str, symbol: &str) -> Result<Instrument, Error> {
+        let client = self.build_authenticated_client(token).await?;
 
         let url = format!("{}/studio/v2/instruments/{}",  self.client_options.api_url, symbol);
 
