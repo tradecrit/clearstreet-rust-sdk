@@ -29,34 +29,11 @@ async fn test_get_accounts() {
         ..Default::default()
     };
 
-    let client = Client::init(options).await.expect("Failed to initialize client");
+    let client = Client::new(options);
 
-    let account = client.get_accounts().await;
+    let token = client.fetch_new_token().await.unwrap();
 
-    assert!(account.is_ok());
-
-    let data = account.unwrap();
-
-    println!("{:#?}", data);
-}
-
-#[tokio::test]
-async fn test_get_account() {
-    dotenv().ok().unwrap_or_default();
-
-    setup_tracing();
-
-    let options = ClientOptions {
-        client_id: env::var("CLIENT_ID").unwrap().to_string(),
-        client_secret: env::var("CLIENT_SECRET").unwrap().to_string(),
-        ..Default::default()
-    };
-
-    let client = Client::init(options).await.expect("Failed to initialize client");
-    
-    let account_id = env::var("ACCOUNT_ID").unwrap_or("123".to_string());
-
-    let account = client.get_account(&account_id).await;
+    let account = client.get_accounts(&token.access_token).await;
 
     assert!(account.is_ok());
 

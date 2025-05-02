@@ -1,5 +1,4 @@
 use std::fmt::Debug;
-use std::time::{Instant};
 use reqwest::header::{ACCEPT, CONTENT_TYPE};
 
 use crate::error::{Error};
@@ -11,7 +10,7 @@ use crate::{utils, Client};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Token {
     pub access_token: String,
-    pub expires_at: Instant,
+    pub expires_at: i64,
 }
 
 /// Request body for fetching a new token.
