@@ -220,7 +220,7 @@ pub enum Strategy {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[serde(rename_all = "UPPERCASE")]
+#[serde(rename_all = "lowercase")]
 pub enum Destination {
     Arcx, // NYSE ARCA
     Bats, // BATS Exchange
