@@ -28,10 +28,15 @@ pub enum PayloadType {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
 pub struct Heartbeat {
+    pub timestamp: i64,
+    pub payload: HeartbeatPayload,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct HeartbeatPayload {
     #[serde(rename = "type")]
-    pub payload_type: PayloadType
+    pub payload_type: PayloadType,
 }
 
 // All message formats and types, along with their serialization
