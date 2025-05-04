@@ -32,9 +32,10 @@ async fn test_get_order() {
         ..Default::default()
     };
 
-    let client = Client::init(options).await.expect("Failed to initialize client");
+    let client = Client::new(options);
 
-    let mut ws_read: WebsocketStream = client.connect_websocket().await.unwrap();
+    let token = client.fetch_new_token().await.unwrap();
+    let mut ws_read: WebsocketStream = client.connect_websocket(&token.access_token).await.unwrap();
 
     while let Some(msg) = ws_read.next().await {
         match msg {
