@@ -30,9 +30,10 @@ async fn test_get_instrument() {
         ..Default::default()
     };
 
-    let client = Client::init(options).await.expect("Failed to initialize client");
-
-    let account = client.get_instrument("AAPL").await;
+    let client = Client::new(options);
+    let token = client.fetch_new_token().await.unwrap();
+    
+    let account = client.get_instrument(&token.access_token, "AAPL").await;
 
     assert!(account.is_ok());
 

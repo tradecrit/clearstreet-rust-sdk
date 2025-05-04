@@ -67,7 +67,7 @@ impl Client {
 #[cfg(test)]
 mod tests {
     use tracing_subscriber::fmt::format::FmtSpan;
-use crate::Client;
+use crate::{Client, ClientOptions};
     use mockito::{Server};
 
     fn setup_tracing() {
@@ -103,9 +103,16 @@ use crate::Client;
             .create_async()
             .await;
 
-        let client = Client::new_with_token(server.url(), "".to_string(), "test-token".into());
+        let options = ClientOptions {
+            client_id: "test_client_id".to_string(),
+            client_secret: "test_client_secret".to_string(),
+            ..Default::default()
+        };
 
-        let result = client.get_account("123abc").await;
+        let client = Client::new(options);
+        let token = client.fetch_new_token().await.unwrap();
+
+        let result = client.get_account(&token.access_token, "123abc").await;
 
         assert!(result.is_ok());
 
@@ -136,9 +143,16 @@ use crate::Client;
             .create_async()
             .await;
 
-        let client = Client::new_with_token(server.url(), "".to_string(), "test-token".into());
+        let options = ClientOptions {
+            client_id: "test_client_id".to_string(),
+            client_secret: "test_client_secret".to_string(),
+            ..Default::default()
+        };
 
-        let result = client.get_accounts().await;
+        let client = Client::new(options);
+        let token = client.fetch_new_token().await.unwrap();
+
+        let result = client.get_accounts(&token.access_token).await;
         assert!(result.is_ok());
 
         let accounts_response = result.unwrap();

@@ -49,7 +49,7 @@ impl Client {
 
 #[cfg(test)]
 mod tests {
-    use crate::Client;
+    use crate::{Client, ClientOptions};
     use mockito::Server;
     use tracing_subscriber::fmt::format::FmtSpan;
     use crate::trades::GetTradeRequest;
@@ -93,14 +93,21 @@ mod tests {
             .create_async()
             .await;
 
-        let client = Client::new_with_token(server.url(), "".to_string(), "test-token".into());
+        let options = ClientOptions {
+            client_id: "test_client_id".to_string(),
+            client_secret: "test_client_secret".to_string(),
+            ..Default::default()
+        };
+
+        let client = Client::new(options);
+        let token = client.fetch_new_token().await.unwrap();
 
         let request = GetTradeRequest {
             account_id: "100000".to_string(),
             trade_id: "12390213".to_string(),
         };
 
-        let result = client.get_trade(request).await;
+        let result = client.get_trade(&token.access_token, request).await;
         assert!(result.is_ok());
 
         let data = result.unwrap();

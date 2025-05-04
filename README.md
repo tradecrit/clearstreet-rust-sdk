@@ -1,6 +1,6 @@
 # Clear Street Rust SDK
 
-[![License: AGPLv3 + No Sale of Software](https://img.shields.io/badge/license-AGPLv3%2BNo%20Sale-blue)](#license)
+[![License: AGPLv3](https://img.shields.io/badge/license-AGPLv3%2BNo%20Sale-blue)](#license)
 
 Rust library providing an API interface to the public endpoints offered by Clear Street.
 

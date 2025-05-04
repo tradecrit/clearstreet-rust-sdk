@@ -74,7 +74,7 @@ impl Client {
 #[cfg(test)]
 mod tests {
     use tracing_subscriber::fmt::format::FmtSpan;
-    use crate::Client;
+    use crate::{Client, ClientOptions};
     use mockito::{Server};
     use crate::positions::GetPositionParams;
 
@@ -112,14 +112,21 @@ mod tests {
             .create_async()
             .await;
 
-        let client = Client::new_with_token(server.url(), "".to_string(), "test-token".into());
+        let options = ClientOptions {
+            client_id: "test_client_id".to_string(),
+            client_secret: "test_client_secret".to_string(),
+            ..Default::default()
+        };
+
+        let client = Client::new(options);
+        let token = client.fetch_new_token().await.unwrap();
 
         let params = GetPositionParams {
             account_id: "100000".to_string(),
             symbol: "AAPL".to_string(),
         };
 
-        let result = client.get_position(params).await;
+        let result = client.get_position(&token.access_token, params).await;
         assert!(result.is_ok());
 
         let data = result.unwrap();
@@ -149,11 +156,18 @@ mod tests {
             .create_async()
             .await;
 
-        let client = Client::new_with_token(server.url(), "".to_string(), "test-token".into());
+        let options = ClientOptions {
+            client_id: "test_client_id".to_string(),
+            client_secret: "test_client_secret".to_string(),
+            ..Default::default()
+        };
+
+        let client = Client::new(options);
+        let token = client.fetch_new_token().await.unwrap();
 
         let account_id = "100000".to_string();
 
-        let result = client.list_positions(&account_id).await;
+        let result = client.list_positions(&token.access_token, &account_id).await;
         assert!(result.is_ok());
 
         let data = result.unwrap();

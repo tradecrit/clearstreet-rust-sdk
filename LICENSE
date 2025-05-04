@@ -1,37 +1,3 @@
-Clear Street Rust SDK
-Modified GNU Affero General Public License v3.0 (AGPLv3)
-
-Copyright (C) [2025] [Dallin Wright]
-
-This program is free software: you can use, study, modify, and share it under the terms of the GNU Affero General Public License version 3 (AGPLv3), with the following additional restriction:
-
-ADDITIONAL TERMS:
-
-1. Permitted Commercial Use:
-    - You may use this program, including modified versions, in your business, services, or operations for financial gain.
-
-2. No Sale of the Software as a Product:
-    - You may not sell, license for a fee, or offer this program, in source code or binary form, whether original or modified, as a product or part of a product offering.
-    - "Product" includes any software, library, service, or deliverable where the software itself is a principal component of what is offered to third parties.
-
-3. Permitted Non-Commercial Distribution:
-    - You may distribute copies or modified versions of the Software, provided such distribution is gratis (without charge) and complies with AGPLv3 obligations.
-
-4. Conflict:
-    - Where these additional terms conflict with the AGPLv3, these additional terms shall prevail.
-
-All other terms of the GNU Affero General Public License v3.0 apply.
-
----
-
-You should have received a copy of the GNU Affero General Public License along with this program.
-If not, see <https://www.gnu.org/licenses/agpl-3.0.en.html>.
-
-A full copy of the AGPLv3 is appended below.
-
----
-
-
 GNU AFFERO GENERAL PUBLIC LICENSE
 
 Version 3, 19 November 2007
