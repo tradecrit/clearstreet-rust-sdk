@@ -1,6 +1,6 @@
 [package]
 name = "clearstreet"
-version = "0.1.12"
+version = "0.1.14"
 edition = "2024"
 authors = ["Tradecrit", "Dallin Wright"]
 rust-version = "1.86.0"

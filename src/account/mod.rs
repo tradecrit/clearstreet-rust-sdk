@@ -19,7 +19,7 @@ pub struct GetAccountsResponse {
 }
 
 impl Client {
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip(self, token, account_id))]
     pub async fn get_account(&self, token: &str, account_id: &str) -> Result<Account, Error> {
         let client = self.build_authenticated_client(token).await?;
 
@@ -40,7 +40,7 @@ impl Client {
         Err(Error::new(HttpError, format!("Error: {} - {}", status, error_body)))
     }
 
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip(self, token))]
     pub async fn get_accounts(&self, token: &str) -> Result<GetAccountsResponse, Error> {
         let client = self.build_authenticated_client(token).await?;
 

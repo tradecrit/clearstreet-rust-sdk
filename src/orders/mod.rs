@@ -331,7 +331,7 @@ impl Client {
     ///
     /// * `Result<CreateOrderResponse, Error>` - Ok if the order was created, Err if there was an error
     ///
-    #[tracing::instrument(skip(self, params))]
+    #[tracing::instrument(skip(self, token, params))]
     pub async fn create_order(&self, token: &str, params: CreateOrderParams) -> Result<CreateOrderResponse, Error> {
         tracing::debug!("create_order: {:?}", params);
 
@@ -368,7 +368,7 @@ impl Client {
     ///
     /// * `Result<Order, Error>` - Ok if the order was found, Err if there was an error
     ///
-    #[tracing::instrument(skip(self, params))]
+    #[tracing::instrument(skip(self, token, params))]
     pub async fn get_order(&self, token: &str, params: OrderParams) -> Result<Order, Error> {
         tracing::debug!("get_order: {:?}", params);
 
@@ -405,7 +405,7 @@ impl Client {
     ///
     /// * `Result<(), Error>` - Ok if the order was deleted, Err if there was an error
     ///
-    #[tracing::instrument(skip(self, params))]
+    #[tracing::instrument(skip(self, token, params))]
     pub async fn delete_order(&self, token: &str, params: OrderParams) -> Result<(), Error> {
         tracing::debug!("delete_order: {:?}", params);
 
@@ -441,7 +441,7 @@ impl Client {
     ///
     /// * `Result<(), Error>` - Ok if the order was updated, Err if there was an error
     ///
-    #[tracing::instrument(skip(self, params, body))]
+    #[tracing::instrument(skip(self, token, params, body))]
     pub async fn update_order(
         &self,
         token: &str,
@@ -471,7 +471,7 @@ impl Client {
         Err(Error::new(HttpError, format!("Error: {} - {}", status, error_body)))
     }
 
-    #[tracing::instrument(skip(self, account_id, params))]
+    #[tracing::instrument(skip(self, token, account_id, params))]
     pub async fn list_orders(
         &self,
         token: &str,
