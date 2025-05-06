@@ -13,6 +13,7 @@ pub struct SymbolDetail {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct Instrument {
     pub symbols: Vec<SymbolDetail>,
     pub asset_class: String,

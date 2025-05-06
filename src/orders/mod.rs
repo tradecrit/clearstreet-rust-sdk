@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 pub enum OrderState {
     Open,
     Rejected,
@@ -16,6 +17,7 @@ pub enum OrderState {
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 pub enum OrderStatus {
     New,
     #[serde(rename = "partially-filled")]
@@ -42,6 +44,7 @@ pub enum OrderStatus {
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 pub enum OrderType {
     Market,
     Limit,
@@ -52,6 +55,7 @@ pub enum OrderType {
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 pub enum OrderSide {
     Buy,
     Sell,
@@ -60,6 +64,7 @@ pub enum OrderSide {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 pub enum TimeInForce {
     #[serde(rename = "day")]
     Day,
@@ -75,6 +80,7 @@ pub enum TimeInForce {
 
 #[derive(Debug, Clone, Copy, Default, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 pub enum SymbolFormat {
     Osi,
     #[default]
@@ -82,6 +88,7 @@ pub enum SymbolFormat {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct DirectMarketAccessStrategy {
     #[serde(rename = "type")]
     pub strategy_type: StrategyType,
@@ -89,6 +96,7 @@ pub struct DirectMarketAccessStrategy {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct SmartOrderRouterStrategy {
     #[serde(rename = "type")]
     pub strategy_type: StrategyType,
@@ -101,6 +109,7 @@ pub struct SmartOrderRouterStrategy {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct VolumeWeightedAveragePriceStrategy {
     #[serde(rename = "type")]
     pub strategy_type: StrategyType,
@@ -117,6 +126,7 @@ pub struct VolumeWeightedAveragePriceStrategy {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct TimeWeightedAveragePriceStrategy {
     #[serde(rename = "type")]
     pub strategy_type: StrategyType,
@@ -133,6 +143,7 @@ pub struct TimeWeightedAveragePriceStrategy {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct PercentageOfVolumeStrategy {
     #[serde(rename = "type")]
     pub strategy_type: StrategyType,
@@ -146,6 +157,7 @@ pub struct PercentageOfVolumeStrategy {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct ArrivalPrice {
     #[serde(rename = "type")]
     pub strategy_type: StrategyType,
@@ -162,6 +174,7 @@ pub struct ArrivalPrice {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct DarkStrategy {
     #[serde(rename = "type")]
     pub strategy_type: StrategyType,
@@ -176,6 +189,7 @@ pub struct DarkStrategy {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 pub enum Urgency {
     #[serde(rename = "super-passive")]
     SuperPassive,
@@ -190,6 +204,7 @@ pub enum Urgency {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 pub enum StrategyType {
     #[serde(rename = "sor")]
     SmartOrderRoute, // Smart Order Router
@@ -221,6 +236,7 @@ pub enum Strategy {
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 pub enum Destination {
     Arcx, // NYSE ARCA
     Bats, // BATS Exchange
@@ -282,6 +298,7 @@ pub struct UpdateOrderRequestBody {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct Order {
     pub created_at: i64,
     pub updated_at: i64,

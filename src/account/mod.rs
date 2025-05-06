@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::utils::{parse_response};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct Account {
     pub account_id: String,
     pub account_number: String,
@@ -14,6 +15,7 @@ pub struct Account {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct GetAccountsResponse {
     pub data: Vec<Account>,
 }
