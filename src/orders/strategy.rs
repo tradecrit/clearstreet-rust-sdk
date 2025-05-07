@@ -4,47 +4,6 @@ use std::str::FromStr;
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use serde::de::{MapAccess, Visitor};
 use serde::ser::SerializeMap;
-use sqlx::Type;
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, Type)]
-#[serde(rename_all = "snake_case")]
-#[sqlx(type_name = "strategy_type", rename_all = "snake_case")]
-pub enum StrategyType {
-    #[serde(rename = "sor")]
-    SmartOrderRoute,
-    #[serde(rename = "dark")]
-    Dark,
-    #[serde(rename = "ap")]
-    ArrivalPrice,
-    #[serde(rename = "pov")]
-    PercentageOfVolume,
-    #[serde(rename = "twap")]
-    TimeWeightedAveragePrice,
-    #[serde(rename = "vwap")]
-    VolumeWeightedAveragePrice,
-    #[serde(rename = "dma")]
-    DirectMarketAccess,
-}
-
-impl FromStr for StrategyType {
-    type Err = crate::Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "smart-order-route" => Ok(StrategyType::SmartOrderRoute),
-            "dark" => Ok(StrategyType::Dark),
-            "arrival-price" => Ok(StrategyType::ArrivalPrice),
-            "percentage-of-volume" => Ok(StrategyType::PercentageOfVolume),
-            "time-weighted-average-price" => Ok(StrategyType::TimeWeightedAveragePrice),
-            "volume-weighted-average-price" => Ok(StrategyType::VolumeWeightedAveragePrice),
-            "direct-market-access" => Ok(StrategyType::DirectMarketAccess),
-            other => Err(crate::Error::new(
-                crate::error::ErrorType::ParseError,
-                format!("Invalid StrategyType: {}", other),
-            )),
-        }
-    }
-}
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type)]
 #[serde(rename_all = "snake_case")]
@@ -158,7 +117,7 @@ impl Serialize for Strategy {
                     map.serialize_entry("urgency", urgency)?;
                 }
             },
-            &Strategy::DirectMarketAccess { 
+            &Strategy::DirectMarketAccess {
                 destination,
             } => {
                 map.serialize_entry("type", "dma")?;
