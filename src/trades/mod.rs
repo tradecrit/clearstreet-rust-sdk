@@ -6,7 +6,7 @@ use crate::error::ErrorType::HttpError;
 use crate::utils::parse_response;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
+#[cfg_attr(feature = "with-sqlx", derive(sqlx::FromRow))]
 pub struct Trade {
     pub created_at: i64,
     pub account_id: String,
