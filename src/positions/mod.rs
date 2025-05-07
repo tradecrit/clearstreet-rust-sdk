@@ -7,7 +7,6 @@ use serde::{Deserialize, Serialize};
 use crate::Client;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 pub struct Position {
     pub account_id: String,
     pub account_number: String,

@@ -2,7 +2,7 @@ use std::env;
 use dotenvy::dotenv;
 use tracing_subscriber::fmt::format::FmtSpan;
 use clearstreet::{Client, ClientOptions};
-use clearstreet::orders::{CreateOrderParams, OrderParams, OrderSide, OrderType, SmartOrderRouterStrategy, Strategy, StrategyType, TimeInForce};
+use clearstreet::orders::{CreateOrderParams, OrderParams, OrderSide, OrderType, Strategy, SymbolFormat, TimeInForce};
 use uuid::Uuid;
 
 fn setup_tracing() {
@@ -33,13 +33,6 @@ async fn test_create_order() {
 
     let client = Client::new(options);
 
-    let strategy = SmartOrderRouterStrategy {
-        strategy_type: StrategyType::SmartOrderRoute,
-        start_at: None,
-        end_at: None,
-        urgency: None,
-    };
-
     let params = CreateOrderParams {
         account_id: env::var("ACCOUNT_ID").unwrap().to_string(),
         reference_id: Uuid::now_v7().to_string(),
@@ -50,8 +43,12 @@ async fn test_create_order() {
         stop_price: None,
         time_in_force: TimeInForce::Day,
         symbol: "COST".to_string(),
-        symbol_format: Default::default(),
-        strategy: Strategy::SmartOrderRoute(strategy),
+        symbol_format: SymbolFormat::Cms,
+        strategy: Strategy::SmartOrderRoute {
+            start_at: None,
+            end_at: None,
+            urgency: None,
+        }
     };
 
     let result = client.create_order("", params).await;

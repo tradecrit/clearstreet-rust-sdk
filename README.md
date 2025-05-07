@@ -4,6 +4,11 @@
 
 Rust library providing an API interface to the public endpoints offered by Clear Street.
 
+## NOTE
+This is a very rough work in progress. It is incomplete, mising features with shortcuts taken. Feel free to open a PR.
+The sqlx mappings to work with orms should be behind a feature, enum mappings and safety added and all that.
+
+
 ## Features
 
 - Fully asynchronous Rust client based on [`reqwest`](https://docs.rs/reqwest/latest/reqwest/).

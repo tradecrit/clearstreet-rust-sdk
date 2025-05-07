@@ -5,19 +5,37 @@ use crate::Client;
 use crate::Error;
 use reqwest::{RequestBuilder, Response};
 use serde::{Deserialize, Serialize};
+use sqlx::Type;
+use std::str::FromStr;
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
-#[cfg_attr(feature = "with-sqlx", derive(sqlx::Type))]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type)]
+#[serde(rename_all = "snake_case")]
+#[sqlx(type_name = "order_state", rename_all = "snake_case")]
 pub enum OrderState {
     Open,
     Rejected,
     Closed,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
-#[cfg_attr(feature = "with-sqlx", derive(sqlx::Type))]
+impl FromStr for OrderState {
+    type Err = crate::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "open" => Ok(OrderState::Open),
+            "rejected" => Ok(OrderState::Rejected),
+            "closed" => Ok(OrderState::Closed),
+            other => Err(crate::Error::new(
+                crate::error::ErrorType::ParseError,
+                format!("Invalid OrderState: {}", other),
+            )),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type)]
+#[serde(rename_all = "snake_case")]
+#[sqlx(type_name = "order_status", rename_all = "snake_case")]
 pub enum OrderStatus {
     New,
     #[serde(rename = "partially-filled")]
@@ -42,9 +60,37 @@ pub enum OrderStatus {
     DoneForDay,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
-#[cfg_attr(feature = "with-sqlx", derive(sqlx::Type))]
+impl FromStr for OrderStatus {
+    type Err = crate::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "new" => Ok(OrderStatus::New),
+            "partially-filled" => Ok(OrderStatus::PartiallyFilled),
+            "filled" => Ok(OrderStatus::Filled),
+            "canceled" => Ok(OrderStatus::Canceled),
+            "replaced" => Ok(OrderStatus::Replaced),
+            "pending-cancel" => Ok(OrderStatus::PendingCancel),
+            "stopped" => Ok(OrderStatus::Stopped),
+            "rejected" => Ok(OrderStatus::Rejected),
+            "suspended" => Ok(OrderStatus::Suspended),
+            "pending-new" => Ok(OrderStatus::PendingNew),
+            "calculated" => Ok(OrderStatus::Calculated),
+            "expired" => Ok(OrderStatus::Expired),
+            "accepted-for-bidding" => Ok(OrderStatus::AcceptedForBidding),
+            "pending-replace" => Ok(OrderStatus::PendingReplace),
+            "done-for-day" => Ok(OrderStatus::DoneForDay),
+            other => Err(crate::Error::new(
+                crate::error::ErrorType::ParseError,
+                format!("Invalid OrderStatus: {}", other),
+            )),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type, Eq, PartialEq)]
+#[serde(rename_all = "snake_case")]
+#[sqlx(type_name = "order_type", rename_all = "snake_case")]
 pub enum OrderType {
     Market,
     Limit,
@@ -53,9 +99,26 @@ pub enum OrderType {
     StopLimit,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
-#[cfg_attr(feature = "with-sqlx", derive(sqlx::Type))]
+impl FromStr for OrderType {
+    type Err = crate::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "market" => Ok(OrderType::Market),
+            "limit" => Ok(OrderType::Limit),
+            "stop" => Ok(OrderType::Stop),
+            "stop-limit" => Ok(OrderType::StopLimit),
+            other => Err(crate::Error::new(
+                crate::error::ErrorType::ParseError,
+                format!("Invalid OrderType: {}", other),
+            )),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type, Eq, PartialEq)]
+#[serde(rename_all = "snake_case")]
+#[sqlx(type_name = "order_side", rename_all = "snake_case")]
 pub enum OrderSide {
     Buy,
     Sell,
@@ -63,8 +126,25 @@ pub enum OrderSide {
     SellShort,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[cfg_attr(feature = "with-sqlx", derive(sqlx::Type))]
+impl FromStr for OrderSide {
+    type Err = crate::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "buy" => Ok(OrderSide::Buy),
+            "sell" => Ok(OrderSide::Sell),
+            "sell-short" => Ok(OrderSide::SellShort),
+            other => Err(crate::Error::new(
+                crate::error::ErrorType::ParseError,
+                format!("Invalid OrderSide: {}", other),
+            )),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type, Eq, PartialEq)]
+#[serde(rename_all = "snake_case")]
+#[sqlx(type_name = "time_in_force", rename_all = "snake_case")]
 pub enum TimeInForce {
     #[serde(rename = "day")]
     Day,
@@ -78,25 +158,60 @@ pub enum TimeInForce {
     AtClose,
 }
 
-#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
-#[cfg_attr(feature = "with-sqlx", derive(sqlx::Type))]
+impl FromStr for TimeInForce {
+    type Err = crate::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "day" => Ok(TimeInForce::Day),
+            "ioc" => Ok(TimeInForce::ImmediateOrCancel),
+            "day-plus" => Ok(TimeInForce::DayPlus),
+            "at-open" => Ok(TimeInForce::AtOpen),
+            "at-close" => Ok(TimeInForce::AtClose),
+            other => Err(crate::Error::new(
+                crate::error::ErrorType::ParseError,
+                format!("Invalid TimeInForce: {}", other),
+            )),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type, Eq, PartialEq, Default)]
+#[serde(rename_all = "snake_case")]
+#[sqlx(type_name = "symbol_format", rename_all = "snake_case")]
 pub enum SymbolFormat {
     Osi,
     #[default]
     Cms,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[cfg_attr(feature = "with-sqlx", derive(sqlx::FromRow))]
+impl FromStr for SymbolFormat {
+    type Err = crate::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "osi" => Ok(SymbolFormat::Osi),
+            "cms" => Ok(SymbolFormat::Cms),
+            other => Err(crate::Error::new(
+                crate::error::ErrorType::ParseError,
+                format!("Invalid SymbolFormat: {}", other),
+            )),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::FromRow)]
+#[serde(rename_all = "snake_case")]
+#[sqlx(transparent)]
 pub struct DirectMarketAccessStrategy {
     #[serde(rename = "type")]
     pub strategy_type: StrategyType,
     pub destination: Destination,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[cfg_attr(feature = "with-sqlx", derive(sqlx::FromRow))]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::FromRow)]
+#[serde(rename_all = "snake_case")]
+#[sqlx(transparent)]
 pub struct SmartOrderRouterStrategy {
     #[serde(rename = "type")]
     pub strategy_type: StrategyType,
@@ -108,8 +223,9 @@ pub struct SmartOrderRouterStrategy {
     pub urgency: Option<Urgency>,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[cfg_attr(feature = "with-sqlx", derive(sqlx::FromRow))]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::FromRow)]
+#[serde(rename_all = "snake_case")]
+#[sqlx(transparent)]
 pub struct VolumeWeightedAveragePriceStrategy {
     #[serde(rename = "type")]
     pub strategy_type: StrategyType,
@@ -125,8 +241,9 @@ pub struct VolumeWeightedAveragePriceStrategy {
     pub max_percent: Option<i64>,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[cfg_attr(feature = "with-sqlx", derive(sqlx::FromRow))]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::FromRow)]
+#[serde(rename_all = "snake_case")]
+#[sqlx(transparent)]
 pub struct TimeWeightedAveragePriceStrategy {
     #[serde(rename = "type")]
     pub strategy_type: StrategyType,
@@ -142,8 +259,9 @@ pub struct TimeWeightedAveragePriceStrategy {
     pub max_percent: Option<i64>,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[cfg_attr(feature = "with-sqlx", derive(sqlx::FromRow))]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::FromRow)]
+#[serde(rename_all = "snake_case")]
+#[sqlx(transparent)]
 pub struct PercentageOfVolumeStrategy {
     #[serde(rename = "type")]
     pub strategy_type: StrategyType,
@@ -156,8 +274,9 @@ pub struct PercentageOfVolumeStrategy {
     pub target_percent: i64,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[cfg_attr(feature = "with-sqlx", derive(sqlx::FromRow))]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::FromRow)]
+#[serde(rename_all = "snake_case")]
+#[sqlx(transparent)]
 pub struct ArrivalPrice {
     #[serde(rename = "type")]
     pub strategy_type: StrategyType,
@@ -173,8 +292,9 @@ pub struct ArrivalPrice {
     pub max_percent: Option<i64>,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[cfg_attr(feature = "with-sqlx", derive(sqlx::FromRow))]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::FromRow)]
+#[serde(rename_all = "snake_case")]
+#[sqlx(transparent)]
 pub struct DarkStrategy {
     #[serde(rename = "type")]
     pub strategy_type: StrategyType,
@@ -188,8 +308,9 @@ pub struct DarkStrategy {
     pub max_percent: Option<i64>,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[cfg_attr(feature = "with-sqlx", derive(sqlx::Type))]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type)]
+#[serde(rename_all = "snake_case")]
+#[sqlx(type_name = "urgency", rename_all = "snake_case")]
 pub enum Urgency {
     #[serde(rename = "super-passive")]
     SuperPassive,
@@ -203,40 +324,131 @@ pub enum Urgency {
     SuperAggressive,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[cfg_attr(feature = "with-sqlx", derive(sqlx::Type))]
+impl FromStr for Urgency {
+    type Err = crate::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "super-passive" => Ok(Urgency::SuperPassive),
+            "passive" => Ok(Urgency::Passive),
+            "moderate" => Ok(Urgency::Moderate),
+            "aggressive" => Ok(Urgency::Aggressive),
+            "super-aggressive" => Ok(Urgency::SuperAggressive),
+            other => Err(crate::Error::new(
+                crate::error::ErrorType::ParseError,
+                format!("Invalid Urgency: {}", other),
+            )),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, Type)]
+#[serde(rename_all = "snake_case")]
+#[sqlx(type_name = "strategy_type", rename_all = "snake_case")]
 pub enum StrategyType {
-    #[serde(rename = "sor")]
-    SmartOrderRoute, // Smart Order Router
-    #[serde(rename = "dark")]
-    Dark, // Dark Pool
-    #[serde(rename = "ap")]
-    ArrivalPrice, // Arrival Price
-    #[serde(rename = "pov")]
-    PercentageOfVolume, // Percentage of Volume
-    #[serde(rename = "twap")]
-    TimeWeightedAveragePrice, // Time Weighted Average Price
-    #[serde(rename = "vwap")]
-    VolumeWeightedAveragePrice, // Volume Weighted Average Price
-    #[serde(rename = "dma")]
-    DirectMarketAccess, // Direct Market Access
+    SmartOrderRoute,
+    Dark,
+    ArrivalPrice,
+    PercentageOfVolume,
+    TimeWeightedAveragePrice,
+    VolumeWeightedAveragePrice,
+    DirectMarketAccess,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[serde(untagged)]
+impl FromStr for StrategyType {
+    type Err = crate::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "smart-order-route" => Ok(StrategyType::SmartOrderRoute),
+            "dark" => Ok(StrategyType::Dark),
+            "arrival-price" => Ok(StrategyType::ArrivalPrice),
+            "percentage-of-volume" => Ok(StrategyType::PercentageOfVolume),
+            "time-weighted-average-price" => Ok(StrategyType::TimeWeightedAveragePrice),
+            "volume-weighted-average-price" => Ok(StrategyType::VolumeWeightedAveragePrice),
+            "direct-market-access" => Ok(StrategyType::DirectMarketAccess),
+            other => Err(crate::Error::new(
+                crate::error::ErrorType::ParseError,
+                format!("Invalid StrategyType: {}", other),
+            )),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
 pub enum Strategy {
-    SmartOrderRoute(SmartOrderRouterStrategy), // Smart Order Router
-    Dark(DarkStrategy), // Dark Pool
-    ArrivalPrice(ArrivalPrice), // Arrival Price
-    PercentageOfVolume(PercentageOfVolumeStrategy), // Percentage of Volume
-    TimeWeightedAveragePrice(TimeWeightedAveragePriceStrategy), // Time Weighted Average Price
-    VolumeWeightedAveragePrice(VolumeWeightedAveragePriceStrategy), // Volume Weighted Average Price
-    DirectMarketAccess(DirectMarketAccessStrategy), // Direct Market Access
+    SmartOrderRoute {
+        #[serde(skip_serializing_if = "Option::is_none")]
+        start_at: Option<i64>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        end_at: Option<i64>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        urgency: Option<Urgency>,
+    },
+    Dark {
+        #[serde(skip_serializing_if = "Option::is_none")]
+        start_at: Option<i64>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        end_at: Option<i64>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        urgency: Option<Urgency>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        max_percent: Option<i64>,
+    },
+    ArrivalPrice {
+        #[serde(skip_serializing_if = "Option::is_none")]
+        start_at: Option<i64>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        end_at: Option<i64>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        urgency: Option<Urgency>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        min_percent: Option<i64>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        max_percent: Option<i64>,
+    },
+    PercentageOfVolume {
+        #[serde(skip_serializing_if = "Option::is_none")]
+        start_at: Option<i64>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        end_at: Option<i64>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        urgency: Option<Urgency>,
+        target_percent: i64,
+    },
+    TimeWeightedAveragePrice {
+        #[serde(skip_serializing_if = "Option::is_none")]
+        start_at: Option<i64>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        end_at: Option<i64>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        urgency: Option<Urgency>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        min_percent: Option<i64>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        max_percent: Option<i64>,
+    },
+    VolumeWeightedAveragePrice {
+        #[serde(skip_serializing_if = "Option::is_none")]
+        start_at: Option<i64>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        end_at: Option<i64>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        urgency: Option<Urgency>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        min_percent: Option<i64>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        max_percent: Option<i64>,
+    },
+    DirectMarketAccess {
+        destination: Destination,
+    },
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
-#[cfg_attr(feature = "with-sqlx", derive(sqlx::Type))]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type)]
+#[serde(rename_all = "snake_case")]
+#[sqlx(type_name = "destination", rename_all = "snake_case")]
 pub enum Destination {
     Arcx, // NYSE ARCA
     Bats, // BATS Exchange
@@ -297,8 +509,8 @@ pub struct UpdateOrderRequestBody {
     pub stop_price: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "with-sqlx", derive(sqlx::FromRow))]
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
+#[serde(rename_all = "snake_case")]
 pub struct Order {
     pub created_at: i64,
     pub updated_at: i64,
@@ -349,7 +561,11 @@ impl Client {
     /// * `Result<CreateOrderResponse, Error>` - Ok if the order was created, Err if there was an error
     ///
     #[tracing::instrument(skip(self, token, params))]
-    pub async fn create_order(&self, token: &str, params: CreateOrderParams) -> Result<CreateOrderResponse, Error> {
+    pub async fn create_order(
+        &self,
+        token: &str,
+        params: CreateOrderParams,
+    ) -> Result<CreateOrderResponse, Error> {
         tracing::debug!("create_order: {:?}", params);
 
         let client = self.build_authenticated_client(token).await?;
@@ -371,7 +587,10 @@ impl Client {
 
         let status = response.status();
         let error_body = response.text().await?;
-        Err(Error::new(HttpError, format!("Error: {} - {}", status, error_body)))
+        Err(Error::new(
+            HttpError,
+            format!("Error: {} - {}", status, error_body),
+        ))
     }
 
     /// Gets an order by id. There is currently a problem with the documents that show
@@ -408,7 +627,10 @@ impl Client {
 
         let status = response.status();
         let error_body = response.text().await?;
-        Err(Error::new(HttpError, format!("Error: {} - {}", status, error_body)))
+        Err(Error::new(
+            HttpError,
+            format!("Error: {} - {}", status, error_body),
+        ))
     }
 
     /// Deletes an order. NOTE this attempts to cancel the order, that doesn't mean that is does.
@@ -443,7 +665,10 @@ impl Client {
 
         let status = response.status();
         let error_body = response.text().await?;
-        Err(Error::new(HttpError, format!("Error: {} - {}", status, error_body)))
+        Err(Error::new(
+            HttpError,
+            format!("Error: {} - {}", status, error_body),
+        ))
     }
 
     /// Updates an order. The order is updated in the broker's system and is not
@@ -485,7 +710,10 @@ impl Client {
 
         let status = response.status();
         let error_body = response.text().await?;
-        Err(Error::new(HttpError, format!("Error: {} - {}", status, error_body)))
+        Err(Error::new(
+            HttpError,
+            format!("Error: {} - {}", status, error_body),
+        ))
     }
 
     #[tracing::instrument(skip(self, token, account_id, params))]
@@ -499,7 +727,10 @@ impl Client {
 
         let client = self.build_authenticated_client(token).await?;
 
-        let url: String = format!("{}/studio/v2/accounts/{}/orders",  self.client_options.api_url, account_id);
+        let url: String = format!(
+            "{}/studio/v2/accounts/{}/orders",
+            self.client_options.api_url, account_id
+        );
 
         let request_builder: RequestBuilder = client
             .get(&url)
@@ -518,17 +749,23 @@ impl Client {
 
         let status = response.status();
         let error_body = response.text().await?;
-        Err(Error::new(HttpError, format!("Error: {} - {}", status, error_body)))
+        Err(Error::new(
+            HttpError,
+            format!("Error: {} - {}", status, error_body),
+        ))
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::orders::{CreateOrderParams, Destination, DirectMarketAccessStrategy, ListOrdersParams, OrderParams, OrderSide, OrderType, StrategyType, TimeInForce, UpdateOrderRequestBody};
+    use crate::orders::Strategy::DirectMarketAccess;
+    use crate::orders::{
+        CreateOrderParams, Destination, ListOrdersParams, OrderParams, OrderSide, OrderType,
+        SymbolFormat, TimeInForce, UpdateOrderRequestBody,
+    };
     use crate::{Client, ClientOptions};
     use mockito::Server;
     use tracing_subscriber::fmt::format::FmtSpan;
-    use crate::orders::Strategy::DirectMarketAccess;
 
     fn setup_tracing() {
         let _ = tracing_subscriber::fmt()
@@ -571,11 +808,6 @@ mod tests {
         let client = Client::new(options);
         let token = client.fetch_new_token().await.unwrap();
 
-        let strategy = DirectMarketAccessStrategy {
-            strategy_type: StrategyType::DirectMarketAccess,
-            destination: Destination::Arcx,
-        };
-
         let params = CreateOrderParams {
             account_id: "100000".to_string(),
             reference_id: "my-custom-id".to_string(),
@@ -586,8 +818,10 @@ mod tests {
             stop_price: None,
             time_in_force: TimeInForce::Day,
             symbol: "AAPL".to_string(),
-            symbol_format: Default::default(),
-            strategy: DirectMarketAccess(strategy),
+            symbol_format: SymbolFormat::Cms,
+            strategy: DirectMarketAccess {
+                destination: Destination::Arcx,
+            },
         };
 
         let result = client.create_order(&token.access_token, params).await;
@@ -721,7 +955,7 @@ mod tests {
 
         let order_params: OrderParams = OrderParams {
             account_id: "100000".to_string(),
-            order_id: "abc123".to_string()
+            order_id: "abc123".to_string(),
         };
 
         let params = UpdateOrderRequestBody {
@@ -730,7 +964,9 @@ mod tests {
             stop_price: None,
         };
 
-        let result = client.update_order(&token.access_token, order_params, params).await;
+        let result = client
+            .update_order(&token.access_token, order_params, params)
+            .await;
         assert!(result.is_ok());
     }
 
@@ -741,7 +977,10 @@ mod tests {
         let mut server = Server::new_async().await;
 
         let _mock = server
-            .mock("GET", "/studio/v2/accounts/100000/orders?from=0&to=0&page_size=1&page_token=string")
+            .mock(
+                "GET",
+                "/studio/v2/accounts/100000/orders?from=0&to=0&page_size=1&page_token=string",
+            )
             .with_status(200)
             .with_header("content-type", "application/json")
             .with_body(
@@ -801,7 +1040,9 @@ mod tests {
             page_token: "string".to_string(),
         };
 
-        let result = client.list_orders(&token.access_token, "100000", params).await;
+        let result = client
+            .list_orders(&token.access_token, "100000", params)
+            .await;
         assert!(result.is_ok());
 
         let data = result.unwrap();

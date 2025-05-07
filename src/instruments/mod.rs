@@ -7,14 +7,12 @@ use crate::orders::SymbolFormat;
 use crate::utils::parse_response;
 
 #[derive(Debug, Serialize, Deserialize)]
-#[cfg_attr(feature = "with-sqlx", derive(sqlx::FromRow))]
 pub struct SymbolDetail {
     pub symbol: String,
     pub symbol_format: SymbolFormat,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[cfg_attr(feature = "with-sqlx", derive(sqlx::FromRow))]
 pub struct Instrument {
     pub symbols: Vec<SymbolDetail>,
     pub asset_class: String,
