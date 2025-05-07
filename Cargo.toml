@@ -1,6 +1,6 @@
 [package]
 name = "clearstreet"
-version = "0.1.16"
+version = "0.1.17"
 edition = "2024"
 authors = ["Tradecrit", "Dallin Wright"]
 rust-version = "1.86.0"
@@ -9,7 +9,7 @@ license-file = "LICENSE"
 
 [features]
 default = []
-with-sqlx = ["sqlx"]  # enable the `postgres` feature of the sqlx crate
+with-sqlx = ["sqlx"]
 
 [dependencies]
 sqlx = { version = "0.8.5", optional = true }
