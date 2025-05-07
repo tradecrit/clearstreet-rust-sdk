@@ -250,12 +250,13 @@ dependencies = [
 
 [[package]]
 name = "clearstreet"
-version = "0.1.18"
+version = "0.1.19"
 dependencies = [
  "dotenvy",
  "futures-util",
  "mockito",
  "reqwest",
+ "rust_decimal",
  "serde",
  "serde_json",
  "sqlx",

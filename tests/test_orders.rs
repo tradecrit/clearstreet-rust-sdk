@@ -1,8 +1,9 @@
+use clearstreet::orders::strategy::{Strategy, Urgency};
 use std::env;
 use dotenvy::dotenv;
 use tracing_subscriber::fmt::format::FmtSpan;
 use clearstreet::{Client, ClientOptions};
-use clearstreet::orders::{CreateOrderParams, OrderParams, OrderSide, OrderType, Strategy, SymbolFormat, TimeInForce};
+use clearstreet::orders::{CreateOrderParams, OrderParams, OrderSide, OrderType, SymbolFormat, TimeInForce};
 use uuid::Uuid;
 
 fn setup_tracing() {
@@ -28,6 +29,7 @@ async fn test_create_order() {
     let options = ClientOptions {
         client_id: env::var("CLIENT_ID").unwrap().to_string(),
         client_secret: env::var("CLIENT_SECRET").unwrap().to_string(),
+        account_id: env::var("ACCOUNT_ID").unwrap().to_string(),
         ..Default::default()
     };
 
@@ -39,7 +41,7 @@ async fn test_create_order() {
         order_type: OrderType::Limit,
         order_side: OrderSide::Buy,
         quantity: "1".to_string(),
-        price: Some("100.00".to_string()),
+        price: Some("800.00".to_string()),
         stop_price: None,
         time_in_force: TimeInForce::Day,
         symbol: "COST".to_string(),
@@ -47,11 +49,13 @@ async fn test_create_order() {
         strategy: Strategy::SmartOrderRoute {
             start_at: None,
             end_at: None,
-            urgency: None,
+            urgency: Some(Urgency::Moderate)
         }
     };
 
-    let result = client.create_order("", params).await;
+    let token = client.fetch_new_token().await.unwrap();
+
+    let result = client.create_order(&token.access_token, params).await;
 
     if let Err(err) = result {
         tracing::error!(error = ?err, "Error creating order");
@@ -72,6 +76,7 @@ async fn test_get_order() {
     let options = ClientOptions {
         client_id: env::var("CLIENT_ID").unwrap().to_string(),
         client_secret: env::var("CLIENT_SECRET").unwrap().to_string(),
+        account_id: env::var("ACCOUNT_ID").unwrap().to_string(),
         ..Default::default()
     };
 
@@ -79,12 +84,14 @@ async fn test_get_order() {
 
     let params: OrderParams = {
         OrderParams {
-            order_id: "20250501_113350_1".to_string(),
+            order_id: "20250507_113350_4".to_string(),
             account_id: env::var("ACCOUNT_ID").unwrap().to_string(),
         }
     };
+    
+    let token = client.fetch_new_token().await.unwrap();
 
-    let result = client.get_order("", params).await;
+    let result = client.get_order(&token.access_token, params).await;
 
     if let Err(err) = result {
         tracing::error!(error = ?err, "Error creating order");

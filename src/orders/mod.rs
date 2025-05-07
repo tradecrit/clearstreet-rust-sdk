@@ -1,3 +1,5 @@
+
+use crate::orders::strategy::Strategy;
 use crate::error::ErrorType::HttpError;
 use crate::utils;
 use crate::utils::parse_response;
@@ -5,9 +7,11 @@ use crate::Client;
 use crate::Error;
 use reqwest::{RequestBuilder, Response};
 use serde::{Deserialize, Serialize};
-use sqlx::Type;
 use std::str::FromStr;
+use rust_decimal::Decimal;
 
+
+pub mod strategy;
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type)]
 #[serde(rename_all = "snake_case")]
 #[sqlx(type_name = "order_state", rename_all = "snake_case")]
@@ -200,271 +204,6 @@ impl FromStr for SymbolFormat {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::FromRow)]
-#[serde(rename_all = "snake_case")]
-#[sqlx(transparent)]
-pub struct DirectMarketAccessStrategy {
-    #[serde(rename = "type")]
-    pub strategy_type: StrategyType,
-    pub destination: Destination,
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::FromRow)]
-#[serde(rename_all = "snake_case")]
-#[sqlx(transparent)]
-pub struct SmartOrderRouterStrategy {
-    #[serde(rename = "type")]
-    pub strategy_type: StrategyType,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub start_at: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub end_at: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub urgency: Option<Urgency>,
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::FromRow)]
-#[serde(rename_all = "snake_case")]
-#[sqlx(transparent)]
-pub struct VolumeWeightedAveragePriceStrategy {
-    #[serde(rename = "type")]
-    pub strategy_type: StrategyType,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub start_at: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub end_at: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub urgency: Option<Urgency>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub min_percent: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub max_percent: Option<i64>,
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::FromRow)]
-#[serde(rename_all = "snake_case")]
-#[sqlx(transparent)]
-pub struct TimeWeightedAveragePriceStrategy {
-    #[serde(rename = "type")]
-    pub strategy_type: StrategyType,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub start_at: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub end_at: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub urgency: Option<Urgency>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub min_percent: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub max_percent: Option<i64>,
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::FromRow)]
-#[serde(rename_all = "snake_case")]
-#[sqlx(transparent)]
-pub struct PercentageOfVolumeStrategy {
-    #[serde(rename = "type")]
-    pub strategy_type: StrategyType,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub start_at: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub end_at: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub urgency: Option<Urgency>,
-    pub target_percent: i64,
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::FromRow)]
-#[serde(rename_all = "snake_case")]
-#[sqlx(transparent)]
-pub struct ArrivalPrice {
-    #[serde(rename = "type")]
-    pub strategy_type: StrategyType,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub start_at: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub end_at: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub urgency: Option<Urgency>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub min_percent: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub max_percent: Option<i64>,
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::FromRow)]
-#[serde(rename_all = "snake_case")]
-#[sqlx(transparent)]
-pub struct DarkStrategy {
-    #[serde(rename = "type")]
-    pub strategy_type: StrategyType,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub start_at: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub end_at: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub urgency: Option<Urgency>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub max_percent: Option<i64>,
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type)]
-#[serde(rename_all = "snake_case")]
-#[sqlx(type_name = "urgency", rename_all = "snake_case")]
-pub enum Urgency {
-    #[serde(rename = "super-passive")]
-    SuperPassive,
-    #[serde(rename = "passive")]
-    Passive,
-    #[serde(rename = "moderate")]
-    Moderate,
-    #[serde(rename = "aggressive")]
-    Aggressive,
-    #[serde(rename = "super-aggressive")]
-    SuperAggressive,
-}
-
-impl FromStr for Urgency {
-    type Err = crate::Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "super-passive" => Ok(Urgency::SuperPassive),
-            "passive" => Ok(Urgency::Passive),
-            "moderate" => Ok(Urgency::Moderate),
-            "aggressive" => Ok(Urgency::Aggressive),
-            "super-aggressive" => Ok(Urgency::SuperAggressive),
-            other => Err(crate::Error::new(
-                crate::error::ErrorType::ParseError,
-                format!("Invalid Urgency: {}", other),
-            )),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, Type)]
-#[serde(rename_all = "snake_case")]
-#[sqlx(type_name = "strategy_type", rename_all = "snake_case")]
-pub enum StrategyType {
-    SmartOrderRoute,
-    Dark,
-    ArrivalPrice,
-    PercentageOfVolume,
-    TimeWeightedAveragePrice,
-    VolumeWeightedAveragePrice,
-    DirectMarketAccess,
-}
-
-impl FromStr for StrategyType {
-    type Err = crate::Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "smart-order-route" => Ok(StrategyType::SmartOrderRoute),
-            "dark" => Ok(StrategyType::Dark),
-            "arrival-price" => Ok(StrategyType::ArrivalPrice),
-            "percentage-of-volume" => Ok(StrategyType::PercentageOfVolume),
-            "time-weighted-average-price" => Ok(StrategyType::TimeWeightedAveragePrice),
-            "volume-weighted-average-price" => Ok(StrategyType::VolumeWeightedAveragePrice),
-            "direct-market-access" => Ok(StrategyType::DirectMarketAccess),
-            other => Err(crate::Error::new(
-                crate::error::ErrorType::ParseError,
-                format!("Invalid StrategyType: {}", other),
-            )),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "snake_case")]
-pub enum Strategy {
-    SmartOrderRoute {
-        #[serde(skip_serializing_if = "Option::is_none")]
-        start_at: Option<i64>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        end_at: Option<i64>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        urgency: Option<Urgency>,
-    },
-    Dark {
-        #[serde(skip_serializing_if = "Option::is_none")]
-        start_at: Option<i64>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        end_at: Option<i64>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        urgency: Option<Urgency>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        max_percent: Option<i64>,
-    },
-    ArrivalPrice {
-        #[serde(skip_serializing_if = "Option::is_none")]
-        start_at: Option<i64>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        end_at: Option<i64>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        urgency: Option<Urgency>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        min_percent: Option<i64>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        max_percent: Option<i64>,
-    },
-    PercentageOfVolume {
-        #[serde(skip_serializing_if = "Option::is_none")]
-        start_at: Option<i64>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        end_at: Option<i64>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        urgency: Option<Urgency>,
-        target_percent: i64,
-    },
-    TimeWeightedAveragePrice {
-        #[serde(skip_serializing_if = "Option::is_none")]
-        start_at: Option<i64>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        end_at: Option<i64>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        urgency: Option<Urgency>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        min_percent: Option<i64>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        max_percent: Option<i64>,
-    },
-    VolumeWeightedAveragePrice {
-        #[serde(skip_serializing_if = "Option::is_none")]
-        start_at: Option<i64>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        end_at: Option<i64>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        urgency: Option<Urgency>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        min_percent: Option<i64>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        max_percent: Option<i64>,
-    },
-    DirectMarketAccess {
-        destination: Destination,
-    },
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type)]
-#[serde(rename_all = "snake_case")]
-#[sqlx(type_name = "destination", rename_all = "snake_case")]
-pub enum Destination {
-    Arcx, // NYSE ARCA
-    Bats, // BATS Exchange
-    Baty, // BATS Y Exchange
-    Edga, // EDGA Exchange
-    Edgx, // EDGX Exchange
-    Eprl, // MIAX Pearl Equities
-    Iexg, // Investors' Exchange
-    Memx, // Members' Exchange
-    Xase, // NYSE American
-    Xbos, // NASDAQ BX Exchange
-    Xcis, // NYSE National
-    Xnms, // NASDAQ/NMS (Global Market)
-    Xnys, // New York Stock Exchange
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateOrderParams {
     pub account_id: String,
@@ -528,11 +267,11 @@ pub struct Order {
     pub price: Option<String>,
     pub stop_price: Option<String>,
     pub time_in_force: TimeInForce,
-    pub average_price: f64, // funny this is the only one that is a float
+    pub average_price: Decimal, // funny this is the only one that is a float
     pub filled_quantity: String,
     pub order_update_reason: String,
     pub text: String,
-    pub strategy: Option<Strategy>,
+    pub strategy: Strategy,
     pub running_position: String,
 }
 
@@ -758,14 +497,14 @@ impl Client {
 
 #[cfg(test)]
 mod tests {
-    use crate::orders::Strategy::DirectMarketAccess;
     use crate::orders::{
-        CreateOrderParams, Destination, ListOrdersParams, OrderParams, OrderSide, OrderType,
+        CreateOrderParams, ListOrdersParams, OrderParams, OrderSide, OrderType,
         SymbolFormat, TimeInForce, UpdateOrderRequestBody,
     };
     use crate::{Client, ClientOptions};
     use mockito::Server;
     use tracing_subscriber::fmt::format::FmtSpan;
+    use crate::orders::strategy::{Destination, Strategy, Urgency};
 
     fn setup_tracing() {
         let _ = tracing_subscriber::fmt()
@@ -819,8 +558,10 @@ mod tests {
             time_in_force: TimeInForce::Day,
             symbol: "AAPL".to_string(),
             symbol_format: SymbolFormat::Cms,
-            strategy: DirectMarketAccess {
-                destination: Destination::Arcx,
+            strategy: Strategy::SmartOrderRoute {
+                start_at: None,
+                end_at: None,
+                urgency: Some(Urgency::Moderate),
             },
         };
 
