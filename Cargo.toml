@@ -9,6 +9,7 @@ license-file = "LICENSE"
 
 [features]
 default = []
+sqlx-postgres = ["sqlx/postgres"]
 
 [dependencies]
 sqlx = {version = "0.8.5", features = ["chrono", "uuid", "runtime-tokio", "tls-rustls", "macros", "postgres", "rust_decimal"]}
@@ -31,8 +32,6 @@ tokio-tungstenite = { version = "0.26.2", default-features = false, features = [
     "connect",
 ] }
 
-
 dotenvy = "0.15.7"
-
 mockito = "1.7.0"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter", "json"] }
