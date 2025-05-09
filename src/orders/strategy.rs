@@ -5,9 +5,8 @@ use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use serde::de::{MapAccess, Visitor};
 use serde::ser::SerializeMap;
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type)]
+#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
 #[serde(rename_all = "snake_case")]
-#[sqlx(type_name = "urgency", rename_all = "snake_case")]
 pub enum Urgency {
     #[serde(rename = "super-passive")]
     SuperPassive,
@@ -40,9 +39,8 @@ impl FromStr for Urgency {
 }
 
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type)]
+#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
 #[serde(rename_all = "snake_case")]
-#[sqlx(type_name = "destination", rename_all = "snake_case")]
 pub enum Destination {
     Arcx, // NYSE ARCA
     Bats, // BATS Exchange
@@ -80,7 +78,7 @@ impl Display for Destination {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub enum Strategy {
     SmartOrderRoute {
         start_at: Option<i64>,
@@ -117,7 +115,7 @@ impl Serialize for Strategy {
                     map.serialize_entry("urgency", urgency)?;
                 }
             },
-            &Strategy::DirectMarketAccess {
+            Strategy::DirectMarketAccess {
                 destination,
             } => {
                 map.serialize_entry("type", "dma")?;

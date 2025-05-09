@@ -12,9 +12,8 @@ use rust_decimal::Decimal;
 
 
 pub mod strategy;
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq)]
 #[serde(rename_all = "snake_case")]
-#[sqlx(type_name = "order_state", rename_all = "snake_case")]
 pub enum OrderState {
     Open,
     Rejected,
@@ -37,9 +36,8 @@ impl FromStr for OrderState {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq)]
 #[serde(rename_all = "snake_case")]
-#[sqlx(type_name = "order_status", rename_all = "snake_case")]
 pub enum OrderStatus {
     New,
     #[serde(rename = "partially-filled")]
@@ -92,9 +90,8 @@ impl FromStr for OrderStatus {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq)]
 #[serde(rename_all = "snake_case")]
-#[sqlx(type_name = "order_type", rename_all = "snake_case")]
 pub enum OrderType {
     Market,
     Limit,
@@ -120,9 +117,8 @@ impl FromStr for OrderType {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq)]
 #[serde(rename_all = "snake_case")]
-#[sqlx(type_name = "order_side", rename_all = "snake_case")]
 pub enum OrderSide {
     Buy,
     Sell,
@@ -146,9 +142,8 @@ impl FromStr for OrderSide {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq)]
 #[serde(rename_all = "snake_case")]
-#[sqlx(type_name = "time_in_force", rename_all = "snake_case")]
 pub enum TimeInForce {
     #[serde(rename = "day")]
     Day,
@@ -180,9 +175,8 @@ impl FromStr for TimeInForce {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type, Eq, PartialEq, Default)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq, Default)]
 #[serde(rename_all = "snake_case")]
-#[sqlx(type_name = "symbol_format", rename_all = "snake_case")]
 pub enum SymbolFormat {
     Osi,
     #[default]
@@ -248,7 +242,7 @@ pub struct UpdateOrderRequestBody {
     pub stop_price: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct Order {
     pub created_at: i64,
