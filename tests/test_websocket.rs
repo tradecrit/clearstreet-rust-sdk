@@ -28,14 +28,15 @@ async fn test_get_order() {
     let options = ClientOptions {
         client_id: env::var("BROKER_CLIENT_ID").unwrap(),
         client_secret: env::var("BROKER_CLIENT_SECRET").unwrap(),
-        account_id: env::var("BROKER_ACCOUNT_ID").unwrap(),
         ..Default::default()
     };
+    
+    let account_id = env::var("BROKER_ACCOUNT_ID").unwrap();
 
     let client = Client::new(options);
 
     let token = client.fetch_new_token().await.unwrap();
-    let mut ws_read: WebsocketStream = client.connect_websocket(&token.access_token).await.unwrap();
+    let mut ws_read: WebsocketStream = client.connect_websocket(&token.access_token, &account_id).await.unwrap();
 
     while let Some(msg) = ws_read.next().await {
         match msg {

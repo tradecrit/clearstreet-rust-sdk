@@ -29,7 +29,6 @@ async fn test_create_order() {
     let options = ClientOptions {
         client_id: env::var("CLIENT_ID").unwrap().to_string(),
         client_secret: env::var("CLIENT_SECRET").unwrap().to_string(),
-        account_id: env::var("ACCOUNT_ID").unwrap().to_string(),
         ..Default::default()
     };
 
@@ -76,7 +75,6 @@ async fn test_get_order() {
     let options = ClientOptions {
         client_id: env::var("CLIENT_ID").unwrap().to_string(),
         client_secret: env::var("CLIENT_SECRET").unwrap().to_string(),
-        account_id: env::var("ACCOUNT_ID").unwrap().to_string(),
         ..Default::default()
     };
 

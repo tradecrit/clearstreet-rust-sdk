@@ -90,7 +90,7 @@ impl Client {
     // On failure/disconnection, it will retry the connection.
     // Authentication is handled by the TokenManager and has to be sent to establish the connection.
     // API hard times out at 24 hours.
-    pub async fn connect_websocket(&self, token: &str) -> Result<WebsocketStream, Error> {
+    pub async fn connect_websocket(&self, token: &str, account_id: &str) -> Result<WebsocketStream, Error> {
         tracing::debug!("Creating websocket session");
 
         tracing::debug!("Handling websocket connection establish");
@@ -106,7 +106,7 @@ impl Client {
             authorization: token.to_string(),
             payload: SubscribeActivityPayload {
                 payload_type: PayloadType::SubscribeActivity,
-                account_id: self.client_options.account_id.clone(),
+                account_id: account_id.to_string(),
             },
         };
 
