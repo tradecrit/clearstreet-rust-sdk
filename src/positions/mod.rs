@@ -1,6 +1,5 @@
 use crate::error::ErrorType::HttpError;
 use crate::utils::parse_response;
-use crate::utils;
 use reqwest::Response;
 use crate::Error;
 use serde::{Deserialize, Serialize};
@@ -35,7 +34,11 @@ impl Client {
 
         let request_builder = client.get(&url);
 
-        let response: Response = utils::request(request_builder).await?;
+        let response: Response = request_builder
+            .header("accept", "application/json")
+            .header("content-type", "application/json")
+            .send()
+            .await?;
 
         if response.status().is_success() {
             let body: Position = parse_response(response).await?;
@@ -57,7 +60,11 @@ impl Client {
 
         let request_builder = client.get(&url);
 
-        let response: Response = utils::request(request_builder).await?;
+        let response: Response = request_builder
+            .header("accept", "application/json")
+            .header("content-type", "application/json")
+            .send()
+            .await?;
 
         if response.status().is_success() {
             let body: ListPositionsResponse = parse_response(response).await?;

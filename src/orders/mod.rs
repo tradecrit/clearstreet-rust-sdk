@@ -1,7 +1,6 @@
 
 use crate::orders::strategy::Strategy;
 use crate::error::ErrorType::HttpError;
-use crate::utils;
 use crate::utils::parse_response;
 use crate::Client;
 use crate::Error;
@@ -310,7 +309,11 @@ impl Client {
 
         let request_builder: RequestBuilder = client.post(&url).json(&params);
 
-        let response: Response = utils::request(request_builder).await?;
+        let response: Response = request_builder
+            .header("accept", "application/json")
+            .header("content-type", "application/json")
+            .send()
+            .await?;
 
         if response.status().is_success() {
             let body: CreateOrderResponse = parse_response(response).await?;
@@ -350,7 +353,11 @@ impl Client {
 
         let request_builder: RequestBuilder = client.get(&url);
 
-        let response: Response = utils::request(request_builder).await?;
+        let response: Response = request_builder
+            .header("accept", "application/json")
+            .header("content-type", "application/json")
+            .send()
+            .await?;
 
         if response.status().is_success() {
             let body: GetOrderResponse = parse_response(response).await?;
@@ -390,7 +397,11 @@ impl Client {
 
         let request_builder: RequestBuilder = client.delete(&url);
 
-        let response: Response = utils::request(request_builder).await?;
+        let response: Response = request_builder
+            .header("accept", "application/json")
+            .header("content-type", "application/json")
+            .send()
+            .await?;
 
         if response.status().is_success() {
             return Ok(());
@@ -435,7 +446,11 @@ impl Client {
 
         let request_builder: RequestBuilder = client.patch(&url).json(&body);
 
-        let response: Response = utils::request(request_builder).await?;
+        let response: Response = request_builder
+            .header("accept", "application/json")
+            .header("content-type", "application/json")
+            .send()
+            .await?;
 
         if response.status().is_success() {
             return Ok(());
@@ -472,7 +487,11 @@ impl Client {
             .query(&[("page_size", params.page_size)])
             .query(&[("page_token", params.page_token)]);
 
-        let response: Response = utils::request(request_builder).await?;
+        let response: Response = request_builder
+            .header("accept", "application/json")
+            .header("content-type", "application/json")
+            .send()
+            .await?;
 
         if response.status().is_success() {
             let body: ListOrdersResponse = parse_response(response).await?;

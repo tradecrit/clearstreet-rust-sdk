@@ -1,6 +1,6 @@
 use crate::error::ErrorType::HttpError;
 use crate::error::{Error};
-use crate::{utils, Client};
+use crate::{Client};
 use reqwest::Response;
 use serde::{Deserialize, Serialize};
 use crate::utils::{parse_response};
@@ -27,7 +27,11 @@ impl Client {
 
         let request_builder = client.get(&url);
 
-        let response: Response = utils::request(request_builder).await?;
+        let response: Response = request_builder
+            .header("accept", "application/json")
+            .header("content-type", "application/json")
+            .send()
+            .await?;
 
         if response.status().is_success() {
             let body: Account = parse_response(response).await?;
@@ -48,7 +52,11 @@ impl Client {
 
         let request_builder = client.get(&url);
 
-        let response: Response = utils::request(request_builder).await?;
+        let response: Response = request_builder
+            .header("accept", "application/json")
+            .header("content-type", "application/json")
+            .send()
+            .await?;
 
         if response.status().is_success() {
             let body: GetAccountsResponse = parse_response(response).await?;

@@ -1,6 +1,6 @@
 use reqwest::{RequestBuilder, Response};
 use serde::{Deserialize, Serialize};
-use crate::{utils, Client};
+use crate::{Client};
 use crate::error::{Error};
 use crate::error::ErrorType::HttpError;
 use crate::utils::parse_response;
@@ -33,7 +33,11 @@ impl Client {
 
         let request_builder: RequestBuilder = client.get(&url);
 
-        let response: Response = utils::request(request_builder).await?;
+        let response: Response = request_builder
+            .header("accept", "application/json")
+            .header("content-type", "application/json")
+            .send()
+            .await?;
 
         if response.status().is_success() {
             let body: Trade = parse_response(response).await?;
