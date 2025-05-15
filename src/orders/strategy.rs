@@ -90,6 +90,16 @@ pub enum Strategy {
     },
 }
 
+impl Default for Strategy {
+    fn default() -> Self {
+        Strategy::SmartOrderRoute {
+            start_at: None,
+            end_at: None,
+            urgency: Some(Urgency::Moderate),
+        }
+    }
+}
+
 impl Serialize for Strategy {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -212,7 +222,7 @@ impl<'de> Deserialize<'de> for Strategy {
                             destination = Some(map.next_value()?);
                         }
                         Field::Unknown => {
-                            let _: serde::de::IgnoredAny = map.next_value()?;
+                            let _: de::IgnoredAny = map.next_value()?;
                         }
                     }
                 }

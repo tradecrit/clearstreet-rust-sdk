@@ -13,6 +13,7 @@ pub enum ErrorType {
     ArithmeticError,
     HttpError,
     SerializationError,
+    NotFound,
 }
 
 

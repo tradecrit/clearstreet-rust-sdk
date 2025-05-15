@@ -7,6 +7,9 @@ pub mod instruments;
 pub mod positions;
 pub mod websockets;
 pub mod trades;
+mod mock;
+pub use mock::MockClient;
+pub use mock::ClientInterface;
 
 use serde::{Deserialize, Serialize};
 use error::Error;
