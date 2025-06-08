@@ -1,7 +1,72 @@
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
+use tokio_tungstenite::tungstenite::Utf8Bytes;
+use crate::error::{Error, ErrorType};
 use crate::orders::Order;
 use crate::positions::Position;
-use crate::trades::Trade;
+use crate::websockets::RawMessage;
+
+pub fn parse_message(message: Utf8Bytes) -> Result<ActivityMessage, Error> {
+    // First parse the message partially to see what type it is.
+    let raw_message: RawMessage = serde_json::from_str(&message)?;
+    let parsed_payload_type = raw_message.payload.payload_type;
+
+    // Once the type is known, reparse the full into the right variant.
+    let activity_message = match parsed_payload_type {
+        PayloadType::SubscribeActivityAck => {
+            tracing::debug!("SubscribeActivityAck");
+            let parsed_message: SubscribeActivityAck = serde_json::from_str(message.as_str())?;
+            ActivityMessage::SubscribeActivityAck(parsed_message)
+        }
+        PayloadType::ReplayComplete => {
+            tracing::debug!("ReplayComplete");
+            let parsed_message: ReplayComplete = serde_json::from_str(message.as_str())?;
+            ActivityMessage::ReplayComplete(parsed_message)
+        }
+        PayloadType::OrderUpdate => {
+            tracing::debug!("OrderUpdate");
+            let parsed_message: OrderUpdate = serde_json::from_str(message.as_str())?;
+            ActivityMessage::OrderUpdate(parsed_message)
+        }
+        PayloadType::TradeNotice => {
+            tracing::debug!("TradeNotice");
+            let parsed_message: TradeNotice = serde_json::from_str(message.as_str())?;
+            ActivityMessage::TradeNotice(parsed_message)
+        }
+        PayloadType::PositionUpdate => {
+            tracing::debug!("PositionUpdate");
+            let parsed_message: PositionUpdate = serde_json::from_str(message.as_str())?;
+            ActivityMessage::PositionUpdate(parsed_message)
+        }
+        PayloadType::BuyingPowerUpdate => {
+            tracing::debug!("BuyingPowerUpdate");
+            let parsed_message: BuyingPowerUpdate = serde_json::from_str(message.as_str())?;
+            ActivityMessage::BuyingPowerUpdate(parsed_message)
+        }
+        PayloadType::LocateInventoryUpdate => {
+            tracing::debug!("LocateInventoryUpdate");
+            let parsed_message: LocateInventoryUpdate = serde_json::from_str(message.as_str())?;
+            ActivityMessage::LocateInventoryUpdate(parsed_message)
+        }
+        PayloadType::ErrorNotice => {
+            tracing::debug!("ErrorNotice");
+            let parsed_message: ErrorNotice = serde_json::from_str(message.as_str())?;
+            ActivityMessage::ErrorNotice(parsed_message)
+        }
+        PayloadType::Heartbeat => {
+            tracing::debug!("Heartbeat");
+            let parsed_message: Heartbeat = serde_json::from_str(message.as_str())?;
+            ActivityMessage::Heartbeat(parsed_message)
+        }
+        _ => {
+            tracing::warn!("Unknown message type received: {:?}", parsed_payload_type);
+            return Err(Error::new(ErrorType::ParseError, "Unknown message type"));
+        }
+    };
+
+    Ok(activity_message)
+}
+
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum PayloadType {
@@ -133,7 +198,7 @@ pub struct TradeNotice {
 pub struct TradeNoticePayload {
     #[serde(rename = "type")]
     pub payload_type: PayloadType,
-    pub data: Trade,
+    pub data: Value,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
