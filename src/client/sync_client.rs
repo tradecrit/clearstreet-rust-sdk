@@ -1,3 +1,4 @@
+use std::any::Any;
 use crate::client::{build_headers, ClientOptions, SyncClearstreetClient};
 use crate::error::Error;
 use crate::orders::create::{CreateOrderParams, CreateOrderResponse};
@@ -17,6 +18,10 @@ pub struct SyncClient {
 
 #[cfg(feature = "sync")]
 impl SyncClearstreetClient for SyncClient {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
     fn set_token(&mut self, token: &str) {
         self.token = token.to_string();
     }

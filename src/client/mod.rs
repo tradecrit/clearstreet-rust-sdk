@@ -1,21 +1,21 @@
-use std::fmt::{Debug, Display};
-use reqwest::header::{AUTHORIZATION, CONTENT_TYPE};
-use serde::{Deserialize, Serialize};
 use crate::authentication::TokenResponse;
 use crate::error::{Error, ErrorType};
 use crate::orders;
-use crate::orders::create::{CreateOrderParams, CreateOrderResponse};
-use crate::orders::get::{list_orders, ListOrdersParams, ListOrdersResponse};
 use crate::orders::Order;
+use crate::orders::create::{CreateOrderParams, CreateOrderResponse};
+use crate::orders::get::{ListOrdersParams, ListOrdersResponse, list_orders};
 use crate::orders::update::UpdateOrderRequestBody;
-use crate::positions::{list_positions, ListPositionsResponse, Position};
+use crate::positions::{ListPositionsResponse, Position, list_positions};
+use reqwest::header::{AUTHORIZATION, CONTENT_TYPE};
+use serde::{Deserialize, Serialize};
+use std::any::Any;
+use std::fmt::{Debug, Display};
 
 #[cfg(feature = "async")]
 pub mod async_client;
 
 #[cfg(feature = "sync")]
 pub mod sync_client;
-
 
 pub trait ClearstreetClient {
     fn set_token(&mut self, token: &str);
@@ -42,7 +42,7 @@ pub struct ClientOptions {
     pub websocket_url: String,
     pub client_id: String,
     pub client_secret: String,
-    pub account_id: String
+    pub account_id: String,
 }
 
 impl Display for ClientOptions {
@@ -80,20 +80,36 @@ impl Default for ClientOptions {
 #[cfg(feature = "async")]
 pub trait AsyncClearstreetClient {
     fn set_token(&mut self, token: &str);
-    async fn fetch_new_token(&self) -> Result<TokenResponse, Error>;
+    fn as_any(&self) -> &dyn Any;
     fn build_client(&self, token: &str) -> Result<reqwest::Client, Error>;
-    async fn create_order(&self, params: CreateOrderParams) -> Result<CreateOrderResponse, Error>;
-    async fn get_order(&self, order_id: &str) -> Result<orders::Order, Error>;
-    async fn update_order(&self, order_id: &str, params: UpdateOrderRequestBody) -> Result<(), Error>;
-    async fn delete_order(&self, order_id: &str) -> Result<(), Error>;
-    async fn delete_all_orders(&self, symbol: Option<&str>) -> Result<(), Error>;
-    async fn list_orders(&self, params: ListOrdersParams) -> Result<ListOrdersResponse, Error>;
-    async fn get_position(&self, symbol: &str) -> Result<Position, Error>;
-    async fn list_positions(&self) -> Result<ListPositionsResponse, Error>;
+    fn fetch_new_token(&self) -> impl Future<Output = Result<TokenResponse, Error>>;
+    fn create_order(
+        &self,
+        params: CreateOrderParams,
+    ) -> impl Future<Output = Result<CreateOrderResponse, Error>>;
+    fn get_order(&self, order_id: &str) -> impl Future<Output = Result<Order, Error>>;
+    fn update_order(
+        &self,
+        order_id: &str,
+        params: UpdateOrderRequestBody,
+    ) -> impl Future<Output = Result<(), Error>>;
+    fn delete_order(&self, order_id: &str) -> impl Future<Output = Result<(), Error>>;
+
+    fn delete_all_orders(&self, symbol: Option<&str>) -> impl Future<Output = Result<(), Error>>;
+
+    fn list_orders(
+        &self,
+        params: ListOrdersParams,
+    ) -> impl Future<Output = Result<ListOrdersResponse, Error>>;
+
+    fn get_position(&self, symbol: &str) -> impl Future<Output = Result<Position, Error>>;
+
+    fn list_positions(&self) -> impl Future<Output = Result<ListPositionsResponse, Error>>;
 }
 
 #[cfg(feature = "sync")]
 pub trait SyncClearstreetClient {
+    fn as_any(&self) -> &dyn Any;
     fn set_token(&mut self, token: &str);
     fn fetch_new_token_blocking(&self) -> Result<TokenResponse, Error>;
     fn build_client(&self, token: &str) -> Result<reqwest::blocking::Client, Error>;
