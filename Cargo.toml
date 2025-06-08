@@ -1,6 +1,6 @@
 [package]
 name = "clearstreet"
-version = "0.1.24"
+version = "0.1.25"
 edition = "2024"
 authors = ["Tradecrit", "Dallin Wright"]
 rust-version = "1.86.0"
@@ -8,20 +8,24 @@ description = "Clear Street SDK for Rust"
 license-file = "LICENSE"
 
 [features]
-default = []
+default = ["async"]
+# async: reqwest without blocking
+async = ["reqwest/json", "reqwest/rustls-tls"]
+# sync: reqwest with blocking added
+sync = ["async", "reqwest/blocking"]
 
 [dependencies]
-rust_decimal = "1.37.1"
-rust_decimal_macros = "1.37.1"
+reqwest = { version = "0.12.19", optional = true, default-features = false }
 
-tokio = { version = "1.45.0", features = ["full", "sync"]}
-futures-util = "0.3.31"
-
-reqwest = { version = "0.12.15", features = ["rustls-tls", "json"]}
 tracing = "0.1.41"
+
+# parsing and structuring
 serde = { version = "1.0.219", features = ["derive", "serde_derive"] }
 serde_json = "1.0.140"
 
+# async runtime and websocket support
+tokio = { version = "1.45.0", features = ["full", "sync"]}
+futures-util = "0.3.31"
 tokio-tungstenite = { version = "0.26.2", default-features = false, features = [
     "rustls",
     "rustls-native-certs",
@@ -31,5 +35,6 @@ tokio-tungstenite = { version = "0.26.2", default-features = false, features = [
     "connect",
 ] }
 
+# testing and development
 mockito = "1.7.0"
 async-trait = "0.1.88"

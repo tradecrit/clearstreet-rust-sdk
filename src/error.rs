@@ -1,6 +1,8 @@
 use std::fmt::Display;
+use reqwest::header::InvalidHeaderValue;
 use serde::{Deserialize, Serialize};
 use tokio_tungstenite::tungstenite;
+use crate::orders::OrderState;
 
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq)]
 #[allow(clippy::enum_variant_names)]
@@ -24,10 +26,16 @@ pub struct Error {
 }
 
 impl Error {
-    pub fn new(error_type: ErrorType, message: String) -> Self {
+    pub(crate) fn internal(p0: &str) -> Result<OrderState, Error> {
+        Err(Error::new(ErrorType::InternalError, p0))
+    }
+}
+
+impl Error {
+    pub fn new(error_type: ErrorType, message: &str) -> Self {
         Error {
             error_type,
-            message,
+            message: message.to_string(),
         }
     }
 }
@@ -44,21 +52,27 @@ impl std::error::Error for Error {
     }
 }
 
+impl From<InvalidHeaderValue> for Error {
+    fn from(err: InvalidHeaderValue) -> Self {
+        Error::new(ErrorType::SerializationError, &err.to_string())
+    }
+}
+
 
 impl From<serde_json::Error> for Error {
     fn from(err: serde_json::Error) -> Self {
-        Error::new(ErrorType::ParseError, err.to_string())
+        Error::new(ErrorType::ParseError, &err.to_string())
     }
 }
 
 impl From<reqwest::Error> for Error {
     fn from(err: reqwest::Error) -> Self {
-        Error::new(ErrorType::IoError, err.to_string())
+        Error::new(ErrorType::IoError, &err.to_string())
     }
 }
 
 impl From<tungstenite::error::Error> for Error {
     fn from(err: tungstenite::error::Error) -> Self {
-        Error::new(ErrorType::IoError, err.to_string())
+        Error::new(ErrorType::IoError, &err.to_string())
     }
 }

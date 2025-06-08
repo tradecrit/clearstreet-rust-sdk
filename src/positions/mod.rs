@@ -1,7 +1,8 @@
+use crate::client::async_client::AsyncClient;
+use crate::client::sync_client::SyncClient;
+use crate::error::Error;
 use crate::error::ErrorType::HttpError;
-use crate::utils::parse_response;
-use crate::Client;
-use crate::Error;
+use crate::utils::{parse_response, parse_response_blocking};
 use reqwest::Response;
 use serde::{Deserialize, Serialize};
 
@@ -15,66 +16,63 @@ pub struct Position {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct GetPositionParams {
-    pub account_id: String,
-    pub symbol: String,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ListPositionsResponse {
     pub data: Vec<Position>,
     pub next_page_token: Option<String>,
 }
 
-impl Client {
-    pub async fn get_position(&self, token: &str, params: GetPositionParams) -> Result<Position, Error> {
-        let client = self.build_authenticated_client(token).await?;
+#[cfg(feature = "async")]
+pub async fn get_position(client: &AsyncClient, symbol: &str) -> Result<Position, Error> {
+    let url = format!(
+        "{}/studio/v2/accounts/{}/positions/{}",
+        client.client_options.api_url, client.client_options.account_id, symbol
+    );
 
-        let url = format!("{}/studio/v2/accounts/{}/positions/{}",  self.client_options.api_url, params.account_id, params.symbol);
+    let request_builder = client.client.get(&url);
+    let response: Response = request_builder.send().await?;
 
-        let request_builder = client.get(&url);
-
-        let response: Response = request_builder
-            .header("accept", "application/json")
-            .header("content-type", "application/json")
-            .send()
-            .await?;
-
-        if response.status().is_success() {
-            let body: Position = parse_response(response).await?;
-            tracing::debug!("{:?}", body);
-            return Ok(body);
-        }
-
-        let status = response.status();
-        let error_body = response.text().await?;
-        Err(Error::new(HttpError, format!("Error: {} - {}", status, error_body)))
-    }
-
-    pub async fn list_positions(&self, token: &str, account_id: &str) -> Result<ListPositionsResponse, Error> {
-        tracing::debug!("list_positions: {:?}", account_id);
-
-        let client = self.build_authenticated_client(token).await?;
-
-        let url = format!("{}/studio/v2/accounts/{}/positions",  self.client_options.api_url, account_id);
-
-        let request_builder = client.get(&url);
-
-        let response: Response = request_builder
-            .header("accept", "application/json")
-            .header("content-type", "application/json")
-            .send()
-            .await?;
-
-        if response.status().is_success() {
-            let body: ListPositionsResponse = parse_response(response).await?;
-            tracing::debug!("{:?}", body);
-            return Ok(body);
-        }
-
-        let status = response.status();
-        let error_body = response.text().await?;
-        Err(Error::new(HttpError, format!("Error: {} - {}", status, error_body)))
-    }
+    parse_response::<Position>(response).await
 }
 
+#[cfg(feature = "async")]
+pub async fn list_positions(client: &AsyncClient) -> Result<ListPositionsResponse, Error> {
+    let url = format!(
+        "{}/studio/v2/accounts/{}/positions",
+        client.client_options.api_url, client.client_options.account_id
+    );
+
+    let request_builder = client.client.get(&url);
+    let response: Response = request_builder.send().await?;
+
+    parse_response::<ListPositionsResponse>(response).await
+}
+
+#[cfg(feature = "sync")]
+pub fn get_position_blocking(client: &SyncClient, symbol: &str) -> Result<Position, Error> {
+    let url = format!(
+        "{}/studio/v2/accounts/{}/positions/{}",
+        client.client_options.api_url, client.client_options.account_id, symbol
+    );
+
+    let request_builder = client.client.get(&url);
+    let response: reqwest::blocking::Response = request_builder
+        .send()
+        .map_err(|e| Error::new(HttpError, &e.to_string()))?;
+
+    parse_response_blocking::<Position>(response)
+}
+
+#[cfg(feature = "sync")]
+pub fn list_positions_blocking(client: &SyncClient) -> Result<ListPositionsResponse, Error> {
+    let url = format!(
+        "{}/studio/v2/accounts/{}/positions",
+        client.client_options.api_url, client.client_options.account_id
+    );
+
+    let request_builder = client.client.get(&url);
+    let response: reqwest::blocking::Response = request_builder
+        .send()
+        .map_err(|e| Error::new(HttpError, &e.to_string()))?;
+
+    parse_response_blocking::<ListPositionsResponse>(response)
+}

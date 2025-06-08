@@ -4,7 +4,9 @@ use reqwest::header::{ACCEPT, CONTENT_TYPE};
 use crate::error::{Error};
 use serde::{Deserialize, Serialize};
 use crate::error::ErrorType::HttpError;
-use crate::{utils, Client};
+use crate::client::async_client::AsyncClient;
+use crate::client::sync_client::SyncClient;
+use crate::utils::{parse_response, parse_response_blocking};
 
 /// Represents an access token and its expiration time.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -29,42 +31,69 @@ pub struct TokenResponse {
     pub expires_in: u64,
 }
 
-impl Client {
-    /// Fetches a new access token from the authentication server.
-    ///
-    /// This method sends a client credentials grant request.
-    pub async fn fetch_new_token(&self) -> Result<TokenResponse, Error> {
-        let body = TokenRequest {
-            grant_type: "client_credentials".to_string(),
-            client_id: self.client_options.client_id.clone(),
-            client_secret: self.client_options.client_secret.clone(),
-            audience: "https://api.clearstreet.io".to_string()
-        };
+#[cfg(feature = "async")]
+pub async fn fetch_new_token(client: AsyncClient) -> Result<TokenResponse, Error> {
+    let body = TokenRequest {
+        grant_type: "client_credentials".to_string(),
+        client_id: client.client_options.client_id.clone(),
+        client_secret: client.client_options.client_secret.clone(),
+        audience: "https://api.clearstreet.io".to_string()
+    };
 
-        let url = "https://auth.clearstreet.io/oauth/token";
+    let url = "https://auth.clearstreet.io/oauth/token";
 
-        let client = reqwest::Client::new();
+    let client = reqwest::Client::new();
 
-        let mut headers = reqwest::header::HeaderMap::new();
-        headers.insert(ACCEPT, "application/json".parse().unwrap());
-        headers.insert(CONTENT_TYPE, "application/json".parse().unwrap());
-        headers.insert("user-agent", "clearstreet-sdk".parse().unwrap());
+    let mut headers = reqwest::header::HeaderMap::new();
+    headers.insert(ACCEPT, "application/json".parse()?);
+    headers.insert(CONTENT_TYPE, "application/json".parse()?);
+    headers.insert("user-agent", "clearstreet-sdk".parse()?);
 
-        let response = client
-            .post(url)
-            .headers(headers)
-            .json(&body)
-            .send()
-            .await?;
+    let response = client
+        .post(url)
+        .headers(headers)
+        .json(&body)
+        .send()
+        .await?;
 
-        if !response.status().is_success() {
-            let status = response.status();
-            let error_body = response.text().await?;
-            return Err(Error::new(HttpError, format!("Error: {} - {}", status, error_body)));
-        }
-
-        let body: TokenResponse = utils::parse_response(response).await?;
-
-        Ok(body)
+    if !response.status().is_success() {
+        let status = response.status();
+        let error_body = response.text().await?;
+        return Err(Error::new(HttpError, &format!("Error: {} - {}", status, error_body)));
     }
+
+    parse_response::<TokenResponse>(response).await
+}
+
+#[cfg(feature = "sync")]
+pub fn fetch_new_token_blocking(client: SyncClient) -> Result<TokenResponse, Error> {
+    let body = TokenRequest {
+        grant_type: "client_credentials".to_string(),
+        client_id: client.client_options.client_id.clone(),
+        client_secret: client.client_options.client_secret.clone(),
+        audience: "https://api.clearstreet.io".to_string()
+    };
+
+    let url = "https://auth.clearstreet.io/oauth/token";
+
+    let client = reqwest::blocking::Client::new();
+
+    let mut headers = reqwest::header::HeaderMap::new();
+    headers.insert(ACCEPT, "application/json".parse()?);
+    headers.insert(CONTENT_TYPE, "application/json".parse()?);
+    headers.insert("user-agent", "clearstreet-sdk".parse()?);
+
+    let response = client
+        .post(url)
+        .headers(headers)
+        .json(&body)
+        .send()?;
+
+    if !response.status().is_success() {
+        let status = response.status();
+        let error_body = response.text()?;
+        return Err(Error::new(HttpError, &format!("Error: {} - {}", status, error_body)));
+    }
+
+    parse_response_blocking::<TokenResponse>(response)
 }

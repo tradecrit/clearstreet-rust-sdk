@@ -1,7 +1,5 @@
-use crate::Error;
-use crate::error::ErrorType;
+use crate::error::{Error, ErrorType};
 use crate::orders::strategy::Strategy;
-use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
@@ -27,10 +25,7 @@ impl FromStr for OrderState {
             "open" => Ok(OrderState::Open),
             "rejected" => Ok(OrderState::Rejected),
             "closed" => Ok(OrderState::Closed),
-            other => Err(Error::new(
-                ErrorType::ParseError,
-                format!("Invalid OrderState: {}", other),
-            )),
+            _ => Error::internal("invalid OrderState")
         }
     }
 }
@@ -83,7 +78,7 @@ impl FromStr for OrderStatus {
             "done-for-day" => Ok(OrderStatus::DoneForDay),
             other => Err(Error::new(
                 ErrorType::ParseError,
-                format!("Invalid OrderStatus: {}", other),
+                &format!("Invalid OrderStatus: {}", other),
             )),
         }
     }
@@ -110,7 +105,7 @@ impl FromStr for OrderType {
             "stop-limit" => Ok(OrderType::StopLimit),
             other => Err(Error::new(
                 ErrorType::ParseError,
-                format!("Invalid OrderType: {}", other),
+                &format!("Invalid OrderType: {}", other),
             )),
         }
     }
@@ -135,7 +130,7 @@ impl FromStr for OrderSide {
             "sell-short" => Ok(OrderSide::SellShort),
             other => Err(Error::new(
                 ErrorType::ParseError,
-                format!("Invalid OrderSide: {}", other),
+                &format!("Invalid OrderSide: {}", other),
             )),
         }
     }
@@ -168,7 +163,7 @@ impl FromStr for TimeInForce {
             "at-close" => Ok(TimeInForce::AtClose),
             other => Err(Error::new(
                 ErrorType::ParseError,
-                format!("Invalid TimeInForce: {}", other),
+                &format!("Invalid TimeInForce: {}", other),
             )),
         }
     }
@@ -191,14 +186,14 @@ impl FromStr for SymbolFormat {
             "cms" => Ok(SymbolFormat::Cms),
             other => Err(Error::new(
                 ErrorType::ParseError,
-                format!("Invalid SymbolFormat: {}", other),
+                &format!("Invalid SymbolFormat: {}", other),
             )),
         }
     }
 }
 
 
-#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct Order {
     pub created_at: i64,
@@ -217,7 +212,7 @@ pub struct Order {
     pub price: Option<String>,
     pub stop_price: Option<String>,
     pub time_in_force: TimeInForce,
-    pub average_price: Decimal, // funny this is the only one that is a float
+    pub average_price: f64, // funny this is the only one that is a float
     pub filled_quantity: String,
     pub order_update_reason: String,
     pub text: String,

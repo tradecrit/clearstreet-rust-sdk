@@ -4,6 +4,7 @@ use std::str::FromStr;
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use serde::de::{MapAccess, Visitor};
 use serde::ser::SerializeMap;
+use crate::error::{Error, ErrorType};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
 #[serde(rename_all = "snake_case")]
@@ -21,7 +22,7 @@ pub enum Urgency {
 }
 
 impl FromStr for Urgency {
-    type Err = crate::Error;
+    type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
@@ -30,9 +31,9 @@ impl FromStr for Urgency {
             "moderate" => Ok(Urgency::Moderate),
             "aggressive" => Ok(Urgency::Aggressive),
             "super-aggressive" => Ok(Urgency::SuperAggressive),
-            other => Err(crate::Error::new(
-                crate::error::ErrorType::ParseError,
-                format!("Invalid Urgency: {}", other),
+            other => Err(Error::new(
+                ErrorType::ParseError,
+                &format!("Invalid Urgency: {}", other),
             )),
         }
     }
