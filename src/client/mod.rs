@@ -1,6 +1,7 @@
 use std::fmt::{Debug, Display};
 use reqwest::header::{AUTHORIZATION, CONTENT_TYPE};
 use serde::{Deserialize, Serialize};
+use crate::authentication::TokenResponse;
 use crate::error::{Error, ErrorType};
 use crate::orders;
 use crate::orders::create::{CreateOrderParams, CreateOrderResponse};
@@ -79,7 +80,7 @@ impl Default for ClientOptions {
 #[cfg(feature = "async")]
 pub trait AsyncClearstreetClient {
     fn set_token(&mut self, token: &str);
-    fn fetch_new_token(&self) -> Result<String, Error>;
+    async fn fetch_new_token(&self) -> Result<TokenResponse, Error>;
     fn build_client(&self, token: &str) -> Result<reqwest::Client, Error>;
     async fn create_order(&self, params: CreateOrderParams) -> Result<CreateOrderResponse, Error>;
     async fn get_order(&self, order_id: &str) -> Result<orders::Order, Error>;
@@ -94,6 +95,7 @@ pub trait AsyncClearstreetClient {
 #[cfg(feature = "sync")]
 pub trait SyncClearstreetClient {
     fn set_token(&mut self, token: &str);
+    fn fetch_new_token_blocking(&self) -> Result<TokenResponse, Error>;
     fn build_client(&self, token: &str) -> Result<reqwest::blocking::Client, Error>;
     fn create_order(&self, params: CreateOrderParams) -> Result<CreateOrderResponse, Error>;
     fn get_order(&self, order_id: &str) -> Result<Order, Error>;

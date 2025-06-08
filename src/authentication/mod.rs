@@ -32,7 +32,7 @@ pub struct TokenResponse {
 }
 
 #[cfg(feature = "async")]
-pub async fn fetch_new_token(client: AsyncClient) -> Result<TokenResponse, Error> {
+pub async fn fetch_new_token(client: &AsyncClient) -> Result<TokenResponse, Error> {
     let body = TokenRequest {
         grant_type: "client_credentials".to_string(),
         client_id: client.client_options.client_id.clone(),
@@ -66,7 +66,7 @@ pub async fn fetch_new_token(client: AsyncClient) -> Result<TokenResponse, Error
 }
 
 #[cfg(feature = "sync")]
-pub fn fetch_new_token_blocking(client: SyncClient) -> Result<TokenResponse, Error> {
+pub fn fetch_new_token_blocking(client: &SyncClient) -> Result<TokenResponse, Error> {
     let body = TokenRequest {
         grant_type: "client_credentials".to_string(),
         client_id: client.client_options.client_id.clone(),

@@ -4,8 +4,9 @@ use crate::orders::create::{CreateOrderParams, CreateOrderResponse};
 use crate::orders::delete::{delete_all_orders_blocking, delete_order_blocking};
 use crate::orders::get::ListOrdersParams;
 use crate::positions::ListPositionsResponse;
-use crate::{orders, positions};
+use crate::{authentication, orders, positions};
 use std::time::Duration;
+use crate::authentication::TokenResponse;
 
 #[derive(Debug, Clone)]
 pub struct SyncClient {
@@ -18,6 +19,10 @@ pub struct SyncClient {
 impl SyncClearstreetClient for SyncClient {
     fn set_token(&mut self, token: &str) {
         self.token = token.to_string();
+    }
+
+    fn fetch_new_token_blocking(&self) -> Result<TokenResponse, Error> {
+        authentication::fetch_new_token_blocking(self)
     }
 
     fn build_client(&self, token: &str) -> Result<reqwest::blocking::Client, Error> {
