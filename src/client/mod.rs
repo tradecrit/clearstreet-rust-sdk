@@ -79,6 +79,7 @@ impl Default for ClientOptions {
 #[cfg(feature = "async")]
 pub trait AsyncClearstreetClient {
     fn set_token(&mut self, token: &str);
+    fn fetch_new_token(&self) -> Result<String, Error>;
     fn build_client(&self, token: &str) -> Result<reqwest::Client, Error>;
     async fn create_order(&self, params: CreateOrderParams) -> Result<CreateOrderResponse, Error>;
     async fn get_order(&self, order_id: &str) -> Result<orders::Order, Error>;

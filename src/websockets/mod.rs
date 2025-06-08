@@ -1,15 +1,19 @@
 mod payloads;
-
-use crate::error::{Error, ErrorType};
-pub use crate::websockets::payloads::{ActivityMessage, BuyingPowerUpdate, ErrorNotice, LocateInventoryUpdate, OrderUpdate, PayloadType, PositionUpdate, ReplayComplete, SubscribeActivity, SubscribeActivityAck, SubscribeActivityPayload, TradeNotice};
-use futures_util::{SinkExt, StreamExt};
-use futures_util::stream::SplitStream;
+use crate::error::Error;
 use serde::Deserialize;
-use tokio::net::TcpStream;
-use tokio_tungstenite::{connect_async, MaybeTlsStream, WebSocketStream};
-use tokio_tungstenite::tungstenite::{connect, Message, Utf8Bytes};
+
 use crate::client::async_client::AsyncClient;
-use crate::websockets::payloads::Heartbeat;
+pub use crate::websockets::payloads::{
+    ActivityMessage, BuyingPowerUpdate, ErrorNotice, LocateInventoryUpdate, OrderUpdate,
+    PayloadType, PositionUpdate, ReplayComplete, SubscribeActivity, SubscribeActivityAck,
+    SubscribeActivityPayload, TradeNotice,
+};
+
+use crate::client::sync_client::SyncClient;
+use tokio_tungstenite::{
+    WebSocketStream, connect_async, tungstenite::protocol::Message,
+};
+use tungstenite::{Utf8Bytes, connect};
 
 #[derive(Debug, Clone, Deserialize)]
 struct RawMessage {
@@ -22,19 +26,24 @@ struct RawPayload {
     payload_type: PayloadType,
 }
 
-pub type WebsocketStream = SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>;
+#[cfg(feature = "async")]
+use futures_util::SinkExt;
 
 #[cfg(feature = "async")]
-pub async fn connect_websocket(client: AsyncClient, token: &str, account_id: &str) -> Result<WebsocketStream, Error> {
+pub async fn connect_websocket(
+    client: AsyncClient,
+    token: &str,
+    account_id: &str,
+) -> Result<WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>, Error> {
     tracing::debug!("Creating websocket session");
-    let (ws_stream, _) = connect_async(self.client_options.websocket_url.clone()).await?;
 
-    // Split to be able to get seperate read/write streams
-    let (mut ws_write, ws_read) = ws_stream.split();
+    let ws_url = client.client_options.websocket_url.clone();
 
-    // Task to send messages from outbound channel to websocket
-    // We initialize once with the auth message and that's it.
-    let authed_subscribe = SubscribeActivity {
+    let (mut ws_stream, _) = connect_async(ws_url)
+        .await?;
+
+    // Build auth message
+    let auth_msg = SubscribeActivity {
         authorization: token.to_string(),
         payload: SubscribeActivityPayload {
             payload_type: PayloadType::SubscribeActivity,
@@ -42,26 +51,28 @@ pub async fn connect_websocket(client: AsyncClient, token: &str, account_id: &st
         },
     };
 
-    let serialized_session = serde_json::to_string(&authed_subscribe)?;
+    let msg_json = serde_json::to_string(&auth_msg)?;
+    tracing::debug!("Sending auth message: {}", msg_json);
 
-    tracing::debug!("Sending auth message: {}", serialized_session);
-    ws_write.send(Message::from(serialized_session)).await?;
+    ws_stream
+        .send(Message::Text(Utf8Bytes::from(msg_json)))
+        .await?;
 
-    Ok(ws_read)
+    Ok(ws_stream)
 }
 
-
 #[cfg(feature = "sync")]
-pub fn connect_websocket_blocking(client: AsyncClient, token: &str, account_id: &str) -> Result<WebsocketStream, Error> {
-    tracing::debug!("Creating websocket session");
-    let (ws_stream, _) = connect(client.client_options.websocket_url.clone())?;
+pub fn connect_websocket_blocking(
+    client: &SyncClient,
+    token: &str,
+    account_id: &str,
+) -> Result<tungstenite::protocol::WebSocket<tungstenite::stream::MaybeTlsStream<std::net::TcpStream>>, Error> {
+    tracing::debug!("Creating blocking websocket session");
 
-    // Split to be able to get seperate read/write streams
-    let (mut ws_write, ws_read) = ws_stream.split();
+    let (mut ws_stream, _response) = tungstenite::connect(&client.client_options.websocket_url)?;
 
-    // Task to send messages from outbound channel to websocket
-    // We initialize once with the auth message and that's it.
-    let authed_subscribe = SubscribeActivity {
+    // Build auth message
+    let auth_msg = SubscribeActivity {
         authorization: token.to_string(),
         payload: SubscribeActivityPayload {
             payload_type: PayloadType::SubscribeActivity,
@@ -69,10 +80,10 @@ pub fn connect_websocket_blocking(client: AsyncClient, token: &str, account_id: 
         },
     };
 
-    let serialized_session = serde_json::to_string(&authed_subscribe)?;
+    let msg_json = serde_json::to_string(&auth_msg)?;
+    tracing::debug!("Sending auth message: {}", msg_json);
 
-    tracing::debug!("Sending auth message: {}", serialized_session);
-    ws_write.send(Message::from(serialized_session))?;
+    ws_stream.send(Message::Text(Utf8Bytes::from(msg_json)))?;
 
-    Ok(ws_read)
+    Ok(ws_stream)
 }

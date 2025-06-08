@@ -34,7 +34,9 @@ tokio-tungstenite = { version = "0.26.2", default-features = false, features = [
     "rustls-tls-webpki-roots",
     "connect",
 ] }
+tungstenite = { version = "0.26.2", features = ["native-tls", "rustls-native-certs", "rustls-pki-types", "rustls-tls-native-roots", "rustls-tls-webpki-roots"] }
 
 # testing and development
 mockito = "1.7.0"
 async-trait = "0.1.88"
+url = "2.5.4"

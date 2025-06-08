@@ -1,7 +1,7 @@
 use std::time::Duration;
 use crate::client::{build_headers, AsyncClearstreetClient, ClientOptions};
 use crate::error::Error;
-use crate::orders;
+use crate::{authentication, orders};
 use crate::orders::create::{CreateOrderParams, CreateOrderResponse};
 use crate::orders::get::{list_orders, ListOrdersParams, ListOrdersResponse};
 use crate::orders::update::{update_order, UpdateOrderRequestBody};
@@ -18,6 +18,10 @@ pub struct AsyncClient {
 impl AsyncClearstreetClient for AsyncClient {
     fn set_token(&mut self, token: &str) {
         self.token = token.to_string();
+    }
+    
+    fn fetch_new_token(&self) -> Result<String, Error> {
+        authentication::fetch_new_token(self).await
     }
 
     fn build_client(&self, token: &str) -> Result<reqwest::Client, Error> {
@@ -43,10 +47,6 @@ impl AsyncClearstreetClient for AsyncClient {
     
     async fn delete_order(&self, order_id: &str) -> Result<(), Error> {
         orders::delete::delete_order(self, order_id).await
-    }
-    
-    async fn delete_all_orders(&self, symbol: Option<&str>) -> Result<(), Error> {
-        orders::delete::delete_all_orders(self, symbol).await
     }
     
     async fn list_orders(&self, params: ListOrdersParams) -> Result<ListOrdersResponse, Error> {
