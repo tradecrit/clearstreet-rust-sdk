@@ -19,7 +19,6 @@ pub mod sync_client;
 pub trait ClearstreetClient: Send + Sync {
     fn set_token(&mut self, token: &str);
     fn build_client(&self, token: &str) -> Result<reqwest::blocking::Client, Error>;
-    fn create_order(&self, params: CreateOrderParams) -> Result<CreateOrderResponse, Error>;
 }
 
 pub fn build_headers(token: &str) -> Result<reqwest::header::HeaderMap, Error> {
@@ -85,6 +84,7 @@ pub trait AsyncClearstreetClient: Send + Sync {
     fn set_token(&mut self, token: &str);
     fn as_any(&self) -> &dyn Any;
     fn build_client(&self, token: &str) -> Result<reqwest::Client, Error>;
+    fn get_account_id(&self) -> String;
     async fn fetch_new_token(&self) -> Result<TokenResponse, Error>;
     async fn create_order(
         &self,
@@ -116,6 +116,7 @@ pub trait SyncClearstreetClient: Send + Sync {
     fn set_token(&mut self, token: &str);
     fn fetch_new_token_blocking(&self) -> Result<TokenResponse, Error>;
     fn build_client(&self, token: &str) -> Result<reqwest::blocking::Client, Error>;
+    fn get_account_id(&self) -> String;
     fn create_order(&self, params: CreateOrderParams) -> Result<CreateOrderResponse, Error>;
     fn get_order(&self, order_id: &str) -> Result<Order, Error>;
     fn update_order(&self, order_id: &str, params: UpdateOrderRequestBody) -> Result<(), Error>;

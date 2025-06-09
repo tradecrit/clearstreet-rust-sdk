@@ -39,6 +39,9 @@ impl SyncClearstreetClient for SyncClient {
             .map_err(Error::from)
     }
 
+    fn get_account_id(&self) -> String {
+        self.client_options.account_id.clone()
+    }
     fn create_order(&self, params: CreateOrderParams) -> Result<CreateOrderResponse, Error> {
         orders::create::create_order_blocking(self, params)
     }

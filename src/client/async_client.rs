@@ -39,6 +39,10 @@ where
             .build()
             .map_err(Error::from)
     }
+    
+    fn get_account_id(&self) -> String {
+        self.client_options.account_id.clone()
+    }
 
     async fn fetch_new_token(&self) -> Result<TokenResponse, Error> {
         authentication::fetch_new_token(self).await

@@ -13,7 +13,7 @@ use crate::client::sync_client::SyncClient;
 use tokio_tungstenite::{
     WebSocketStream, connect_async, tungstenite::protocol::Message,
 };
-use tungstenite::{Utf8Bytes, connect};
+use tungstenite::{Utf8Bytes};
 
 #[derive(Debug, Clone, Deserialize)]
 struct RawMessage {
