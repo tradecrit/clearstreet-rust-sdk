@@ -5,7 +5,7 @@ use crate::orders::get::{ListOrdersParams, ListOrdersResponse};
 use crate::orders::update::UpdateOrderRequestBody;
 use crate::orders::Order;
 use crate::positions::{ListPositionsResponse, Position};
-use reqwest::header::{AUTHORIZATION, CONTENT_TYPE};
+use reqwest::header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE};
 use serde::{Deserialize, Serialize};
 use std::any::Any;
 use std::fmt::{Debug, Display};
@@ -18,7 +18,6 @@ pub mod sync_client;
 
 pub trait ClearstreetClient: Send + Sync {
     fn set_token(&mut self, token: &str);
-    fn build_client(&self, token: &str) -> Result<reqwest::blocking::Client, Error>;
 }
 
 pub fn build_headers(token: &str) -> Result<reqwest::header::HeaderMap, Error> {
@@ -29,7 +28,7 @@ pub fn build_headers(token: &str) -> Result<reqwest::header::HeaderMap, Error> {
 
     headers.insert(AUTHORIZATION, bearer_token);
     headers.insert(CONTENT_TYPE, "application/json".parse()?);
-    headers.insert("Accept", "application/json".parse()?);
+    headers.insert(ACCEPT, "application/json".parse()?);
 
     Ok(headers)
 }

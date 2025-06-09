@@ -9,12 +9,48 @@ use crate::positions::{get_position, list_positions, ListPositionsResponse, Posi
 use crate::{authentication, orders};
 use std::any::Any;
 use std::time::Duration;
+use reqwest::Client;
 
 #[derive(Debug, Clone)]
 pub struct AsyncClient {
-    pub client: reqwest::Client,
+    pub client: Client,
     pub client_options: ClientOptions,
     pub token: String,
+}
+
+impl AsyncClient {
+    pub fn new(client_options: ClientOptions) -> Self {
+        let client = Client::builder()
+            .timeout(Duration::from_secs(5))
+            .build()
+            .expect("Unable to create clearstreet async client");
+
+        Self {
+            client,
+            client_options,
+            token: String::new(), // Placeholder; will be replaced in `authenticate`
+        }
+    }
+
+    pub async fn authenticate(&mut self) -> Result<(), Error> {
+        let token_response: TokenResponse = authentication::fetch_new_token(&self).await?;
+        self.token = token_response.access_token;
+        Ok(())
+    }
+
+    pub async fn build_client(&mut self) -> Result<(), Error> {
+        self.authenticate().await?;
+
+        let headers = build_headers(&self.token)?;
+
+        self.client = Client::builder()
+            .timeout(Duration::from_secs(5))
+            .default_headers(headers)
+            .build()
+            .map_err(Error::from)?;
+
+        Ok(())
+    }
 }
 
 #[cfg(feature = "async")]
@@ -31,7 +67,7 @@ where
         self
     }
 
-    fn build_client(&self, token: &str) -> Result<reqwest::Client, Error> {
+    fn build_client(&self, token: &str) -> Result<Client, Error> {
         let headers = build_headers(token)?;
         reqwest::Client::builder()
             .timeout(Duration::from_secs(5))

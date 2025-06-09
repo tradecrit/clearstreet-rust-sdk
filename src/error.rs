@@ -7,6 +7,7 @@ use crate::orders::OrderState;
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq)]
 #[allow(clippy::enum_variant_names)]
 pub enum ErrorType {
+    AuthenticationError,
     ParseError,
     ThirdPartyError,
     InternalError,

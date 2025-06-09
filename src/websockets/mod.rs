@@ -42,7 +42,7 @@ pub async fn connect_websocket(
     let (mut ws_stream, _) = connect_async(ws_url)
         .await?;
 
-    // Build auth message
+    // Build an auth message
     let auth_msg = SubscribeActivity {
         authorization: token.to_string(),
         payload: SubscribeActivityPayload {
@@ -71,7 +71,6 @@ pub fn connect_websocket_blocking(
 
     let (mut ws_stream, _response) = tungstenite::connect(&client.client_options.websocket_url)?;
 
-    // Build auth message
     let auth_msg = SubscribeActivity {
         authorization: token.to_string(),
         payload: SubscribeActivityPayload {
