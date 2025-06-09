@@ -1,6 +1,5 @@
 mod payloads;
 use crate::error::Error;
-use serde::Deserialize;
 
 use crate::client::async_client::AsyncClient;
 pub use crate::websockets::payloads::{

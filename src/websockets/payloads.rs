@@ -7,6 +7,7 @@ use crate::positions::Position;
 
 #[derive(Debug, Clone, Deserialize)]
 struct RawMessage {
+    #[serde(rename = "payload")]
     payload: RawPayload,
 }
 
