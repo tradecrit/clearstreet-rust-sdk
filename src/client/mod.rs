@@ -76,6 +76,7 @@ impl Default for ClientOptions {
 
 #[cfg(feature = "async")]
 use async_trait::async_trait;
+use tokio_tungstenite::WebSocketStream;
 
 #[cfg(feature = "async")]
 #[async_trait]
@@ -107,6 +108,7 @@ pub trait AsyncClearstreetClient: Send + Sync {
     async fn get_position(&self, symbol: &str) -> Result<Position, Error>;
 
     async fn list_positions(&self) -> Result<ListPositionsResponse, Error>;
+    async fn connect_websocket(&self) -> Result<WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>, Error>;
 }
 
 #[cfg(feature = "sync")]
@@ -124,4 +126,5 @@ pub trait SyncClearstreetClient: Send + Sync {
     fn delete_all_orders(&self, symbol: Option<&str>) -> Result<(), Error>;
     fn get_position(&self, symbol: &str) -> Result<Position, Error>;
     fn list_positions(&self) -> Result<ListPositionsResponse, Error>;
+    fn connect_websocket(&self) -> Result<tungstenite::protocol::WebSocket<tungstenite::stream::MaybeTlsStream<std::net::TcpStream>>, Error>;
 }

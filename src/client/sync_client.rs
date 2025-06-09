@@ -1,4 +1,5 @@
 use std::any::Any;
+use std::net::TcpStream;
 use crate::client::{build_headers, ClientOptions, SyncClearstreetClient};
 use crate::error::Error;
 use crate::orders::create::{CreateOrderParams, CreateOrderResponse};
@@ -7,7 +8,10 @@ use crate::orders::get::ListOrdersParams;
 use crate::positions::ListPositionsResponse;
 use crate::{authentication, orders, positions};
 use std::time::Duration;
+use tungstenite::stream::MaybeTlsStream;
+use tungstenite::WebSocket;
 use crate::authentication::TokenResponse;
+use crate::websockets::connect_websocket_blocking;
 
 #[derive(Debug, Clone)]
 pub struct SyncClient {
@@ -72,5 +76,9 @@ impl SyncClearstreetClient for SyncClient {
 
     fn list_positions(&self) -> Result<ListPositionsResponse, Error> {
         positions::list_positions_blocking(self)
+    }
+
+    fn connect_websocket(&self) -> Result<WebSocket<MaybeTlsStream<TcpStream>>, Error> {
+        connect_websocket_blocking(self)
     }
 }

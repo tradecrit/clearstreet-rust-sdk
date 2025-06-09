@@ -4,12 +4,22 @@ use tokio_tungstenite::tungstenite::Utf8Bytes;
 use crate::error::{Error, ErrorType};
 use crate::orders::Order;
 use crate::positions::Position;
-use crate::websockets::RawMessage;
+
+#[derive(Debug, Clone, Deserialize)]
+struct RawMessage {
+    payload: RawPayload,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct RawPayload {
+    #[serde(rename = "type")]
+    payload_type: PayloadType,
+}
 
 pub fn parse_message(message: Utf8Bytes) -> Result<ActivityMessage, Error> {
     // First parse the message partially to see what type it is.
     let raw_message: RawMessage = serde_json::from_str(&message)?;
-    let parsed_payload_type = raw_message.payload.payload_type;
+    let parsed_payload_type: PayloadType = raw_message.payload.payload_type;
 
     // Once the type is known, reparse the full into the right variant.
     let activity_message = match parsed_payload_type {

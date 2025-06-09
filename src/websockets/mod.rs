@@ -15,25 +15,12 @@ use tokio_tungstenite::{
 };
 use tungstenite::{Utf8Bytes};
 
-#[derive(Debug, Clone, Deserialize)]
-struct RawMessage {
-    payload: RawPayload,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-struct RawPayload {
-    #[serde(rename = "type")]
-    payload_type: PayloadType,
-}
-
 #[cfg(feature = "async")]
 use futures_util::SinkExt;
 
 #[cfg(feature = "async")]
 pub async fn connect_websocket(
-    client: AsyncClient,
-    token: &str,
-    account_id: &str,
+    client: &AsyncClient,
 ) -> Result<WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>, Error> {
     tracing::debug!("Creating websocket session");
 
@@ -43,6 +30,9 @@ pub async fn connect_websocket(
         .await?;
 
     // Build an auth message
+    let token = &client.token;
+    let account_id = &client.client_options.account_id;
+
     let auth_msg = SubscribeActivity {
         authorization: token.to_string(),
         payload: SubscribeActivityPayload {
@@ -64,12 +54,13 @@ pub async fn connect_websocket(
 #[cfg(feature = "sync")]
 pub fn connect_websocket_blocking(
     client: &SyncClient,
-    token: &str,
-    account_id: &str,
 ) -> Result<tungstenite::protocol::WebSocket<tungstenite::stream::MaybeTlsStream<std::net::TcpStream>>, Error> {
     tracing::debug!("Creating blocking websocket session");
 
     let (mut ws_stream, _response) = tungstenite::connect(&client.client_options.websocket_url)?;
+
+    let token = &client.token;
+    let account_id = &client.client_options.account_id;
 
     let auth_msg = SubscribeActivity {
         authorization: token.to_string(),

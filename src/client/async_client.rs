@@ -10,6 +10,9 @@ use crate::{authentication, orders};
 use std::any::Any;
 use std::time::Duration;
 use reqwest::Client;
+use tokio::net::TcpStream;
+use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
+use crate::websockets::connect_websocket;
 
 #[derive(Debug, Clone)]
 pub struct AsyncClient {
@@ -114,5 +117,9 @@ where
 
     async fn list_positions(&self) -> Result<ListPositionsResponse, Error> {
         list_positions(self).await
+    }
+    
+    async fn connect_websocket(&self) -> Result<WebSocketStream<MaybeTlsStream<TcpStream>>, Error> {
+        connect_websocket(&self).await
     }
 }
