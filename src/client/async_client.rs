@@ -1,14 +1,14 @@
-use std::any::Any;
-use std::time::Duration;
+use crate::authentication::TokenResponse;
 use crate::client::{build_headers, AsyncClearstreetClient, ClientOptions};
 use crate::error::Error;
-use crate::{authentication, orders};
-use crate::authentication::TokenResponse;
 use crate::orders::create::{CreateOrderParams, CreateOrderResponse};
-use crate::orders::get::{list_orders, GetOrderResponse, ListOrdersParams, ListOrdersResponse};
-use crate::orders::Order;
+use crate::orders::get::{list_orders, ListOrdersParams, ListOrdersResponse};
 use crate::orders::update::{update_order, UpdateOrderRequestBody};
+use crate::orders::Order;
 use crate::positions::{get_position, list_positions, ListPositionsResponse, Position};
+use crate::{authentication, orders};
+use std::any::Any;
+use std::time::Duration;
 
 #[derive(Debug, Clone)]
 pub struct AsyncClient {
@@ -18,7 +18,11 @@ pub struct AsyncClient {
 }
 
 #[cfg(feature = "async")]
-impl AsyncClearstreetClient for AsyncClient {
+#[async_trait::async_trait]
+impl AsyncClearstreetClient for AsyncClient
+where 
+    AsyncClient: Sync + Send
+{
     fn set_token(&mut self, token: &str) {
         self.token = token.to_string();
     }
@@ -36,39 +40,39 @@ impl AsyncClearstreetClient for AsyncClient {
             .map_err(Error::from)
     }
 
-    fn fetch_new_token(&self) -> impl std::future::Future<Output = Result<TokenResponse, Error>> {
-        authentication::fetch_new_token(self)
+    async fn fetch_new_token(&self) -> Result<TokenResponse, Error> {
+        authentication::fetch_new_token(self).await
     }
 
-    fn create_order(&self, params: CreateOrderParams) -> impl Future<Output = Result<CreateOrderResponse, Error>> {
-        orders::create::create_order(self, params)
+    async fn create_order(&self, params: CreateOrderParams) -> Result<CreateOrderResponse, Error> {
+        orders::create::create_order(self, params).await
     }
 
-    fn get_order(&self, order_id: &str) -> impl Future<Output = Result<Order, Error>> {
-        orders::get::get_order(self, order_id)
+    async fn get_order(&self, order_id: &str) -> Result<Order, Error> {
+        orders::get::get_order(self, order_id).await
     }
 
-    fn update_order(&self, order_id: &str, params: UpdateOrderRequestBody) -> impl Future<Output = Result<(), Error>> {
-        update_order(self, order_id, params)
+    async fn update_order(&self, order_id: &str, params: UpdateOrderRequestBody) -> Result<(), Error> {
+        update_order(self, order_id, params).await
     }
 
-    fn delete_order(&self, order_id: &str) -> impl Future<Output = Result<(), Error>> {
-        orders::delete::delete_order(self, order_id)
+    async fn delete_order(&self, order_id: &str) -> Result<(), Error> {
+        orders::delete::delete_order(self, order_id).await
     }
 
-    fn delete_all_orders(&self, symbol: Option<&str>) -> impl Future<Output = Result<(), Error>> {
-        orders::delete::delete_all_orders(self, symbol)
+    async fn delete_all_orders(&self, symbol: Option<&str>) -> Result<(), Error> {
+        orders::delete::delete_all_orders(self, symbol).await
     }
 
-    fn list_orders(&self, params: ListOrdersParams) -> impl Future<Output = Result<ListOrdersResponse, Error>> {
-        list_orders(self, params)
+    async fn list_orders(&self, params: ListOrdersParams) -> Result<ListOrdersResponse, Error> {
+        list_orders(self, params).await
     }
 
-    fn get_position(&self, symbol: &str) -> impl Future<Output = Result<Position, Error>> {
-        get_position(self, symbol)
+    async fn get_position(&self, symbol: &str) -> Result<Position, Error> {
+        get_position(self, symbol).await
     }
 
-    fn list_positions(&self) -> impl Future<Output = Result<ListPositionsResponse, Error>> {
-        list_positions(self)
+    async fn list_positions(&self) -> Result<ListPositionsResponse, Error> {
+        list_positions(self).await
     }
 }
