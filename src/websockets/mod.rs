@@ -1,4 +1,4 @@
-mod payloads;
+pub mod payloads;
 use crate::error::Error;
 
 use crate::client::async_client::AsyncClient;
