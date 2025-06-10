@@ -1,6 +1,6 @@
 [package]
 name = "clearstreet"
-version = "0.1.27"
+version = "0.1.28"
 edition = "2024"
 authors = ["Tradecrit", "Dallin Wright"]
 rust-version = "1.86.0"
@@ -8,7 +8,7 @@ description = "Clear Street SDK for Rust"
 license-file = "LICENSE"
 
 [features]
-default = ["async"]
+default = ["async", "sync"]
 # async: reqwest without blocking
 async = ["reqwest/json", "reqwest/rustls-tls"]
 # sync: reqwest with blocking added

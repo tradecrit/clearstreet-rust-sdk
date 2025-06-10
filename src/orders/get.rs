@@ -1,7 +1,6 @@
-use crate::orders::ErrorType::HttpError;
 use crate::error::Error;
 use crate::orders::Order;
-use crate::utils::{parse_response, parse_response_blocking};
+use crate::utils::{parse_response};
 use reqwest::{RequestBuilder, Response};
 use serde::{Deserialize, Serialize};
 
@@ -9,6 +8,9 @@ use serde::{Deserialize, Serialize};
 use crate::client::async_client::AsyncClient;
 #[cfg(feature="sync")]
 use crate::client::sync_client::SyncClient;
+#[cfg(feature="sync")]
+use crate::utils::parse_response_blocking;
+
 
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -83,9 +85,8 @@ pub fn get_order_blocking(client: &SyncClient, order_id: &str) -> Result<Order, 
 
     let request_builder: reqwest::blocking::RequestBuilder = client.client.get(&url);
     let response: reqwest::blocking::Response = request_builder
-        .send()
-        .map_err(|e| Error::new(HttpError, &e.to_string()))?;
-
+        .send()?;
+    
     parse_response_blocking::<Order>(response)
 }
 
@@ -110,8 +111,7 @@ pub fn list_orders_blocking(
         .query(&[("page_token", params.page_token)]);
 
     let response: reqwest::blocking::Response = request_builder
-        .send()
-        .map_err(|e| Error::new(HttpError, &e.to_string()))?;
+        .send()?;
 
     parse_response_blocking::<ListOrdersResponse>(response)
 }

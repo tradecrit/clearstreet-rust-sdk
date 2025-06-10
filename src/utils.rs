@@ -13,6 +13,7 @@ fn parse<T: serde::de::DeserializeOwned>(text: String) -> Result<T, Error> {
     }
 }
 
+#[cfg(feature = "async")]
 pub async fn parse_response<T: serde::de::DeserializeOwned>(response: Response) -> Result<T, Error> {
     let text = response.text().await.map_err(|e| {
         tracing::error!("Error parsing response to text: {}", e);

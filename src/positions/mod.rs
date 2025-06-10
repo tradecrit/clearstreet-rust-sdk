@@ -1,5 +1,5 @@
 use crate::error::Error;
-use crate::utils::{parse_response, parse_response_blocking};
+use crate::utils::{parse_response};
 use reqwest::Response;
 use serde::{Deserialize, Serialize};
 
@@ -7,7 +7,8 @@ use serde::{Deserialize, Serialize};
 use crate::client::async_client::AsyncClient;
 #[cfg(feature="sync")]
 use crate::client::sync_client::SyncClient;
-use crate::error::ErrorType::HttpError;
+#[cfg(feature="sync")]
+use crate::utils::parse_response_blocking;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Position {
@@ -59,8 +60,7 @@ pub fn get_position_blocking(client: &SyncClient, symbol: &str) -> Result<Positi
 
     let request_builder = client.client.get(&url);
     let response: reqwest::blocking::Response = request_builder
-        .send()
-        .map_err(|e| Error::new(HttpError, &e.to_string()))?;
+        .send()?;
 
     parse_response_blocking::<Position>(response)
 }
@@ -74,8 +74,7 @@ pub fn list_positions_blocking(client: &SyncClient) -> Result<ListPositionsRespo
 
     let request_builder = client.client.get(&url);
     let response: reqwest::blocking::Response = request_builder
-        .send()
-        .map_err(|e| Error::new(HttpError, &e.to_string()))?;
+        .send()?;
 
     parse_response_blocking::<ListPositionsResponse>(response)
 }
