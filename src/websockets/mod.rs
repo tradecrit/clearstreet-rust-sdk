@@ -8,7 +8,9 @@ pub use crate::websockets::payloads::{
     SubscribeActivityPayload, TradeNotice,
 };
 
+#[cfg(feature = "sync")]
 use crate::client::sync_client::SyncClient;
+
 use tokio_tungstenite::{
     WebSocketStream, connect_async, tungstenite::protocol::Message,
 };

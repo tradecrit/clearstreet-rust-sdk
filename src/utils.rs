@@ -22,6 +22,7 @@ pub async fn parse_response<T: serde::de::DeserializeOwned>(response: Response) 
     parse(text)
 }
 
+#[cfg(feature = "sync")]
 pub fn parse_response_blocking<T: serde::de::DeserializeOwned>(response: reqwest::blocking::Response) -> Result<T, Error> {
     let text = response.text().map_err(|e| {
         tracing::error!("Error parsing response to text: {}", e);

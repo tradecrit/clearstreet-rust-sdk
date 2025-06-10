@@ -1,9 +1,13 @@
 use reqwest::{RequestBuilder, Response};
 use serde::{Deserialize, Serialize};
-use crate::client::async_client::AsyncClient;
-use crate::client::sync_client::SyncClient;
 use crate::error::Error;
 use crate::error::ErrorType::HttpError;
+
+#[cfg(feature="async")]
+use crate::client::async_client::AsyncClient;
+#[cfg(feature="sync")]
+use crate::client::sync_client::SyncClient;
+
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UpdateOrderRequestBody {

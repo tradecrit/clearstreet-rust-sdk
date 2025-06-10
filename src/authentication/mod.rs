@@ -4,9 +4,12 @@ use reqwest::header::{ACCEPT, CONTENT_TYPE};
 use crate::error::{Error};
 use serde::{Deserialize, Serialize};
 use crate::error::ErrorType::HttpError;
+use crate::utils::{parse_response};
+
+#[cfg(feature="async")]
 use crate::client::async_client::AsyncClient;
+#[cfg(feature="sync")]
 use crate::client::sync_client::SyncClient;
-use crate::utils::{parse_response, parse_response_blocking};
 
 /// Represents an access token and its expiration time.
 #[derive(Debug, Clone, Serialize, Deserialize)]

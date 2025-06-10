@@ -1,10 +1,13 @@
-use crate::client::async_client::AsyncClient;
-use crate::client::sync_client::SyncClient;
 use crate::error::Error;
-use crate::error::ErrorType::HttpError;
-use crate::utils::{parse_response, parse_response_blocking};
+use crate::utils::parse_response;
 use reqwest::Response;
 use serde::{Deserialize, Serialize};
+
+#[cfg(feature="async")]
+use crate::client::async_client::AsyncClient;
+#[cfg(feature="sync")]
+use crate::client::sync_client::SyncClient;
+
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Position {
