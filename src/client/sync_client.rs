@@ -1,16 +1,14 @@
 use std::any::Any;
 use std::net::TcpStream;
-use crate::client::{build_headers, ClientOptions, SyncClearstreetClient};
+use crate::client::{ClientOptions, SyncClearstreetClient};
 use crate::error::Error;
 use crate::orders::create::{CreateOrderParams, CreateOrderResponse};
 use crate::orders::delete::{delete_all_orders_blocking, delete_order_blocking};
 use crate::orders::get::ListOrdersParams;
 use crate::positions::ListPositionsResponse;
-use crate::{authentication, orders, positions};
-use std::time::Duration;
+use crate::{orders, positions};
 use tungstenite::stream::MaybeTlsStream;
 use tungstenite::WebSocket;
-use crate::authentication::TokenResponse;
 use crate::websockets::connect_websocket_blocking;
 
 #[derive(Debug, Clone)]
@@ -29,18 +27,9 @@ impl SyncClearstreetClient for SyncClient {
     fn set_token(&mut self, token: &str) {
         self.token = token.to_string();
     }
-
-    fn fetch_new_token_blocking(&self) -> Result<TokenResponse, Error> {
-        authentication::fetch_new_token_blocking(self)
-    }
-
-    fn build_client(&self, token: &str) -> Result<reqwest::blocking::Client, Error> {
-        let headers = build_headers(token)?;
-        reqwest::blocking::Client::builder()
-            .timeout(Duration::from_secs(5))
-            .default_headers(headers)
-            .build()
-            .map_err(Error::from)
+    
+    fn fetch_new_token(&self) -> Result<crate::authentication::TokenResponse, Error> {
+        crate::authentication::fetch_new_token_blocking(&self.client_options)
     }
 
     fn get_account_id(&self) -> String {

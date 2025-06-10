@@ -23,7 +23,8 @@ pub trait ClearstreetClient: Send + Sync {
 pub fn build_headers(token: &str) -> Result<reqwest::header::HeaderMap, Error> {
     let mut headers = reqwest::header::HeaderMap::new();
 
-    let bearer_token = reqwest::header::HeaderValue::from_str(token)
+    let auth_header = format!("Bearer {}", token);
+    let bearer_token = reqwest::header::HeaderValue::from_str(&auth_header)
         .map_err(|e| Error::new(ErrorType::SerializationError, &e.to_string()))?;
 
     headers.insert(AUTHORIZATION, bearer_token);
@@ -83,7 +84,6 @@ use tokio_tungstenite::WebSocketStream;
 pub trait AsyncClearstreetClient: Send + Sync {
     fn set_token(&mut self, token: &str);
     fn as_any(&self) -> &dyn Any;
-    fn build_client(&self, token: &str) -> Result<reqwest::Client, Error>;
     fn get_account_id(&self) -> String;
     async fn fetch_new_token(&self) -> Result<TokenResponse, Error>;
     async fn create_order(
@@ -115,8 +115,7 @@ pub trait AsyncClearstreetClient: Send + Sync {
 pub trait SyncClearstreetClient: Send + Sync {
     fn as_any(&self) -> &dyn Any;
     fn set_token(&mut self, token: &str);
-    fn fetch_new_token_blocking(&self) -> Result<TokenResponse, Error>;
-    fn build_client(&self, token: &str) -> Result<reqwest::blocking::Client, Error>;
+    fn fetch_new_token(&self) -> Result<crate::authentication::TokenResponse, Error>;
     fn get_account_id(&self) -> String;
     fn create_order(&self, params: CreateOrderParams) -> Result<CreateOrderResponse, Error>;
     fn get_order(&self, order_id: &str) -> Result<Order, Error>;

@@ -22,9 +22,17 @@ pub struct AsyncClient {
 }
 
 impl AsyncClient {
-    pub fn new(client_options: ClientOptions) -> Self {
+    pub async fn create(client_options: ClientOptions) -> Self {
+        let token_response: TokenResponse = authentication::fetch_new_token(&client_options)
+            .await
+            .expect("Failed to fetch token");
+
+        let headers = build_headers(&token_response.access_token)
+            .expect("Failed to build headers");
+
         let client = Client::builder()
             .timeout(Duration::from_secs(5))
+            .default_headers(headers)
             .build()
             .expect("Unable to create clearstreet async client");
 
@@ -33,26 +41,6 @@ impl AsyncClient {
             client_options,
             token: String::new(), // Placeholder; will be replaced in `authenticate`
         }
-    }
-
-    pub async fn authenticate(&mut self) -> Result<(), Error> {
-        let token_response: TokenResponse = authentication::fetch_new_token(&self).await?;
-        self.token = token_response.access_token;
-        Ok(())
-    }
-
-    pub async fn build_client(&mut self) -> Result<(), Error> {
-        self.authenticate().await?;
-
-        let headers = build_headers(&self.token)?;
-
-        self.client = Client::builder()
-            .timeout(Duration::from_secs(5))
-            .default_headers(headers)
-            .build()
-            .map_err(Error::from)?;
-
-        Ok(())
     }
 }
 
@@ -69,22 +57,13 @@ where
     fn as_any(&self) -> &dyn Any {
         self
     }
-
-    fn build_client(&self, token: &str) -> Result<Client, Error> {
-        let headers = build_headers(token)?;
-        reqwest::Client::builder()
-            .timeout(Duration::from_secs(5))
-            .default_headers(headers)
-            .build()
-            .map_err(Error::from)
-    }
     
     fn get_account_id(&self) -> String {
         self.client_options.account_id.clone()
     }
 
     async fn fetch_new_token(&self) -> Result<TokenResponse, Error> {
-        authentication::fetch_new_token(self).await
+        authentication::fetch_new_token(&self.client_options).await
     }
 
     async fn create_order(&self, params: CreateOrderParams) -> Result<CreateOrderResponse, Error> {

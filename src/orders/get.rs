@@ -11,8 +11,6 @@ use crate::client::sync_client::SyncClient;
 #[cfg(feature="sync")]
 use crate::utils::parse_response_blocking;
 
-
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GetOrderResponse {
     pub order: Order,

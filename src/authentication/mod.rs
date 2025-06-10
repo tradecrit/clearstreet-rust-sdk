@@ -5,14 +5,9 @@ use crate::error::{Error};
 use serde::{Deserialize, Serialize};
 use crate::error::ErrorType::HttpError;
 
-#[cfg(feature="async")]
-use crate::client::async_client::AsyncClient;
-#[cfg(feature="async")]
+use crate::client::ClientOptions;
 use crate::utils::{parse_response};
 
-
-#[cfg(feature="sync")]
-use crate::client::sync_client::SyncClient;
 #[cfg(feature="sync")]
 use crate::utils::parse_response_blocking;
 
@@ -40,11 +35,11 @@ pub struct TokenResponse {
 }
 
 #[cfg(feature = "async")]
-pub async fn fetch_new_token(client: &AsyncClient) -> Result<TokenResponse, Error> {
+pub async fn fetch_new_token(client_options: &ClientOptions) -> Result<TokenResponse, Error> {
     let body = TokenRequest {
         grant_type: "client_credentials".to_string(),
-        client_id: client.client_options.client_id.clone(),
-        client_secret: client.client_options.client_secret.clone(),
+        client_id: client_options.client_id.clone(),
+        client_secret: client_options.client_secret.clone(),
         audience: "https://api.clearstreet.io".to_string()
     };
 
@@ -55,7 +50,6 @@ pub async fn fetch_new_token(client: &AsyncClient) -> Result<TokenResponse, Erro
     let mut headers = reqwest::header::HeaderMap::new();
     headers.insert(ACCEPT, "application/json".parse()?);
     headers.insert(CONTENT_TYPE, "application/json".parse()?);
-    headers.insert("user-agent", "clearstreet-sdk".parse()?);
 
     let response = client
         .post(url)
@@ -74,11 +68,11 @@ pub async fn fetch_new_token(client: &AsyncClient) -> Result<TokenResponse, Erro
 }
 
 #[cfg(feature = "sync")]
-pub fn fetch_new_token_blocking(client: &SyncClient) -> Result<TokenResponse, Error> {
+pub fn fetch_new_token_blocking(client_options: &ClientOptions) -> Result<TokenResponse, Error> {
     let body = TokenRequest {
         grant_type: "client_credentials".to_string(),
-        client_id: client.client_options.client_id.clone(),
-        client_secret: client.client_options.client_secret.clone(),
+        client_id: client_options.client_id.clone(),
+        client_secret: client_options.client_secret.clone(),
         audience: "https://api.clearstreet.io".to_string()
     };
 
@@ -89,7 +83,6 @@ pub fn fetch_new_token_blocking(client: &SyncClient) -> Result<TokenResponse, Er
     let mut headers = reqwest::header::HeaderMap::new();
     headers.insert(ACCEPT, "application/json".parse()?);
     headers.insert(CONTENT_TYPE, "application/json".parse()?);
-    headers.insert("user-agent", "clearstreet-sdk".parse()?);
 
     let response = client
         .post(url)

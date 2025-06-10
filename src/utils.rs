@@ -7,7 +7,7 @@ fn parse<T: serde::de::DeserializeOwned>(text: String) -> Result<T, Error> {
     match serde_json::from_str::<T>(&text) {
         Ok(parsed) => Ok(parsed),
         Err(e) => {
-            tracing::error!("Error parsing response: {}", e);
+            tracing::error!("Error parsing response: {:?}", e);
             Err(e.into())
         }
     }

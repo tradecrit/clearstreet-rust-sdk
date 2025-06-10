@@ -7,7 +7,6 @@ use crate::client::async_client::AsyncClient;
 #[cfg(feature="sync")]
 use crate::client::sync_client::SyncClient;
 
-
 #[cfg(feature = "async")]
 pub(crate) async fn delete_order(
     client: &AsyncClient,
