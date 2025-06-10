@@ -10,7 +10,7 @@ pub mod strategy;
 pub mod update;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq)]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "lowercase")]
 pub enum OrderState {
     Open,
     Rejected,
@@ -31,7 +31,7 @@ impl FromStr for OrderState {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq)]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "lowercase")]
 pub enum OrderStatus {
     New,
     #[serde(rename = "partially-filled")]
@@ -85,7 +85,7 @@ impl FromStr for OrderStatus {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq)]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "lowercase")]
 pub enum OrderType {
     Market,
     Limit,
@@ -112,7 +112,7 @@ impl FromStr for OrderType {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq)]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "lowercase")]
 pub enum OrderSide {
     Buy,
     Sell,

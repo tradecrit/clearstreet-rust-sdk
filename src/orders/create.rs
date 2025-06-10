@@ -17,6 +17,7 @@ pub struct CreateOrderParams {
     pub account_id: String,
     pub reference_id: String,
     pub order_type: OrderType,
+    #[serde(rename = "side")]
     pub order_side: OrderSide,
     pub quantity: String,
     pub price: Option<String>,
