@@ -1,6 +1,7 @@
+use crate::orders::ErrorType::HttpError;
 use crate::error::Error;
 use crate::orders::Order;
-use crate::utils::{parse_response};
+use crate::utils::{parse_response, parse_response_blocking};
 use reqwest::{RequestBuilder, Response};
 use serde::{Deserialize, Serialize};
 
