@@ -46,7 +46,9 @@ pub async fn get_order(client: &AsyncClient, order_id: &str) -> Result<Order, Er
     let request_builder: RequestBuilder = client.client.get(&url);
     let response: Response = request_builder.send().await?;
 
-    parse_response::<Order>(response).await
+    let parsed_response: GetOrderResponse = parse_response::<GetOrderResponse>(response).await?;
+
+    Ok(parsed_response.order)
 }
 
 #[cfg(feature = "async")]
