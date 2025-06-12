@@ -17,7 +17,7 @@ pub(crate) async fn delete_order(
         client.client_options.api_url, client.client_options.account_id, order_id
     );
 
-    let request_builder: RequestBuilder = client.client.post(&url);
+    let request_builder: RequestBuilder = client.client.delete(&url);
     let response: Response = request_builder.send().await?;
 
     if let Err(e) = response.error_for_status() {
