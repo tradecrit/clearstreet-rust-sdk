@@ -35,11 +35,13 @@ impl AsyncClient {
             .default_headers(headers)
             .build()
             .expect("Unable to create clearstreet async client");
+        
+        let token = token_response.access_token;
 
         Self {
             client,
             client_options,
-            token: String::new(), // Placeholder; will be replaced in `authenticate`
+            token
         }
     }
 }

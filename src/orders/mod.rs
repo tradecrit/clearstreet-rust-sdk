@@ -199,7 +199,7 @@ pub struct Order {
     pub created_at: i64,
     pub updated_at: i64,
     pub order_id: String,
-    pub reference_id: String,
+    pub reference_id: Option<String>,
     pub version: i64,
     pub account_id: String,
     pub account_number: String,
