@@ -1,6 +1,6 @@
 [package]
 name = "clearstreet"
-version = "0.1.31"
+version = "0.1.32"
 edition = "2024"
 authors = ["Tradecrit", "Dallin Wright"]
 rust-version = "1.86.0"
@@ -26,7 +26,8 @@ serde_json = "1.0.140"
 # async runtime and websocket support
 tokio = { version = "1.45.0", features = ["full", "sync"]}
 futures-util = "0.3.31"
-tokio-tungstenite = { version = "0.26.2", default-features = false, features = [
+
+tokio-tungstenite = { version = "0.27.0", default-features = false, features = [
     "rustls",
     "rustls-native-certs",
     "rustls-pki-types",
@@ -34,7 +35,8 @@ tokio-tungstenite = { version = "0.26.2", default-features = false, features = [
     "rustls-tls-webpki-roots",
     "connect",
 ] }
-tungstenite = { version = "0.26.2", features = ["native-tls", "rustls-native-certs", "rustls-pki-types", "rustls-tls-native-roots", "rustls-tls-webpki-roots"] }
+
+tungstenite = { version = "0.27.0", features = ["native-tls", "rustls-native-certs", "rustls-pki-types", "rustls-tls-native-roots", "rustls-tls-webpki-roots"] }
 
 # testing and development
 async-trait = "0.1.88"
