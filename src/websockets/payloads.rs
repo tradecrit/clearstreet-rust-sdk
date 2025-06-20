@@ -25,47 +25,38 @@ pub fn parse_message(message: Utf8Bytes) -> Result<ActivityMessage, Error> {
     // Once the type is known, reparse the full into the right variant.
     let activity_message = match parsed_payload_type {
         PayloadType::SubscribeActivityAck => {
-            tracing::trace!("SubscribeActivityAck");
             let parsed_message: SubscribeActivityAck = serde_json::from_str(message.as_str())?;
             ActivityMessage::SubscribeActivityAck(parsed_message)
         }
         PayloadType::ReplayComplete => {
-            tracing::trace!("ReplayComplete");
             let parsed_message: ReplayComplete = serde_json::from_str(message.as_str())?;
             ActivityMessage::ReplayComplete(parsed_message)
         }
         PayloadType::OrderUpdate => {
-            tracing::trace!("OrderUpdate");
             let parsed_message: OrderUpdate = serde_json::from_str(message.as_str())?;
             ActivityMessage::OrderUpdate(parsed_message)
         }
         PayloadType::TradeNotice => {
-            tracing::trace!("TradeNotice");
             let parsed_message: TradeNotice = serde_json::from_str(message.as_str())?;
             ActivityMessage::TradeNotice(parsed_message)
         }
         PayloadType::PositionUpdate => {
-            tracing::trace!("PositionUpdate");
             let parsed_message: PositionUpdate = serde_json::from_str(message.as_str())?;
             ActivityMessage::PositionUpdate(parsed_message)
         }
         PayloadType::BuyingPowerUpdate => {
-            tracing::trace!("BuyingPowerUpdate");
             let parsed_message: BuyingPowerUpdate = serde_json::from_str(message.as_str())?;
             ActivityMessage::BuyingPowerUpdate(parsed_message)
         }
         PayloadType::LocateInventoryUpdate => {
-            tracing::trace!("LocateInventoryUpdate");
             let parsed_message: LocateInventoryUpdate = serde_json::from_str(message.as_str())?;
             ActivityMessage::LocateInventoryUpdate(parsed_message)
         }
         PayloadType::ErrorNotice => {
-            tracing::error!("ErrorNotice");
             let parsed_message: ErrorNotice = serde_json::from_str(message.as_str())?;
             ActivityMessage::ErrorNotice(parsed_message)
         }
         PayloadType::Heartbeat => {
-            tracing::trace!("Heartbeat");
             let parsed_message: Heartbeat = serde_json::from_str(message.as_str())?;
             ActivityMessage::Heartbeat(parsed_message)
         }
