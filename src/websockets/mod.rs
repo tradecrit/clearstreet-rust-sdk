@@ -43,7 +43,6 @@ pub async fn connect_websocket(
     };
 
     let msg_json = serde_json::to_string(&auth_msg)?;
-    tracing::debug!("Sending auth message: {}", msg_json);
 
     ws_stream
         .send(Message::Text(Utf8Bytes::from(msg_json)))
@@ -72,7 +71,6 @@ pub fn connect_websocket_blocking(
     };
 
     let msg_json = serde_json::to_string(&auth_msg)?;
-    tracing::debug!("Sending auth message: {}", msg_json);
 
     ws_stream.send(Message::Text(Utf8Bytes::from(msg_json)))?;
 
