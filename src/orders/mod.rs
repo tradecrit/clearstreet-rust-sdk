@@ -2,6 +2,7 @@ use crate::error::{Error, ErrorType};
 use crate::orders::strategy::Strategy;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
+use chrono::Utc;
 
 pub mod create;
 pub mod delete;
@@ -218,4 +219,33 @@ pub struct Order {
     pub text: String,
     pub strategy: Strategy,
     pub running_position: String,
+}
+
+impl Default for Order {
+    fn default() -> Self {
+        Self {
+            created_at: Utc::now().timestamp_millis(),
+            updated_at: Utc::now().timestamp_millis(),
+            order_id: "".to_string(),
+            reference_id: None,
+            version: 0,
+            account_id: "".to_string(),
+            account_number: "".to_string(),
+            state: OrderState::Open,
+            status: OrderStatus::New,
+            symbol: "".to_string(),
+            order_type: OrderType::Market,
+            side: OrderSide::Buy,
+            quantity: "1".to_string(),
+            price: None,
+            stop_price: None,
+            time_in_force: TimeInForce::Day,
+            average_price: 0.0,
+            filled_quantity: "".to_string(),
+            order_update_reason: "".to_string(),
+            text: "".to_string(),
+            strategy: Default::default(),
+            running_position: "".to_string(),
+        }
+    }
 }
