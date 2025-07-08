@@ -33,7 +33,7 @@ pub struct CreateOrderResponse {
 }
 
 #[cfg(feature = "async")]
-pub(crate) async fn create_order(
+pub async fn create_order(
     async_client: &AsyncClient,
     params: CreateOrderParams,
 ) -> Result<CreateOrderResponse, Error> {
@@ -60,7 +60,7 @@ pub(crate) async fn create_order(
 }
 
 #[cfg(feature = "sync")]
-pub(crate) fn create_order_blocking(
+pub fn create_order_blocking(
     sync_client: &SyncClient,
     params: CreateOrderParams,
 ) -> Result<CreateOrderResponse, Error> {

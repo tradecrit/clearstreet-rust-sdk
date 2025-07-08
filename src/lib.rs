@@ -7,4 +7,3 @@ pub mod websockets;
 mod mock;
 
 pub mod client;
-

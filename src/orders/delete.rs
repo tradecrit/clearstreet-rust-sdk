@@ -8,7 +8,7 @@ use crate::client::async_client::AsyncClient;
 use crate::client::sync_client::SyncClient;
 
 #[cfg(feature = "async")]
-pub(crate) async fn delete_order(
+pub async fn delete_order(
     client: &AsyncClient,
     order_id: &str,
 ) -> Result<(), Error> {
@@ -28,7 +28,7 @@ pub(crate) async fn delete_order(
 }
 
 #[cfg(feature = "async")]
-pub(crate) async fn delete_all_orders(
+pub async fn delete_all_orders(
     client: &AsyncClient,
     symbol: Option<&str>,
 ) -> Result<(), Error> {
@@ -56,7 +56,7 @@ pub(crate) async fn delete_all_orders(
 }
 
 #[cfg(feature = "sync")]
-pub(crate) fn delete_order_blocking(
+pub fn delete_order_blocking(
     client: &SyncClient,
     order_id: &str,
 ) -> Result<(), Error> {
@@ -78,7 +78,7 @@ pub(crate) fn delete_order_blocking(
 }
 
 #[cfg(feature = "sync")]
-pub(crate) fn delete_all_orders_blocking(
+pub fn delete_all_orders_blocking(
     client: &SyncClient,
     symbol: Option<&str>
 ) -> Result<(), Error> {
