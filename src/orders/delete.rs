@@ -45,7 +45,7 @@ pub async fn delete_all_orders(
 
     let url = format!("{}{}", url, query_params);
 
-    let request_builder: RequestBuilder = client.client.post(&url);
+    let request_builder: RequestBuilder = client.client.delete(&url);
     let response: Response = request_builder.send().await?;
 
     if let Err(e) = response.error_for_status() {
