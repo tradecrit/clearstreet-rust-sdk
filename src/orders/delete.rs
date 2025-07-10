@@ -12,10 +12,10 @@ pub async fn delete_order(
     client: &AsyncClient,
     order_id: &str,
 ) -> Result<(), Error> {
-    let url: String = format!(
-        "{}/studio/v2/accounts/{}/orders/{}",
-        client.client_options.api_url, client.client_options.account_id, order_id
-    );
+    let api_url: &str = &client.client_options.api_url;
+    let account_id: &str = &client.client_options.account_id;
+
+    let url: String = format!("{api_url}/studio/v2/accounts/{account_id}/orders/{order_id}");
 
     let request_builder: RequestBuilder = client.client.delete(&url);
     let response: Response = request_builder.send().await?;
@@ -32,10 +32,10 @@ pub async fn delete_all_orders(
     client: &AsyncClient,
     symbol: Option<&str>,
 ) -> Result<(), Error> {
-    let url: String = format!(
-        "{}/studio/v2/accounts/{}/orders",
-        client.client_options.api_url, client.client_options.account_id
-    );
+    let api_url: &str = &client.client_options.api_url;
+    let account_id: &str = &client.client_options.account_id;
+
+    let url: String = format!("{api_url}/studio/v2/accounts/{account_id}/orders");
 
     let query_params = if let Some(symbol) = &symbol {
         format!("?symbol={}", symbol.to_uppercase())

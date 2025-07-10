@@ -1,14 +1,13 @@
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use tokio_tungstenite::tungstenite::Utf8Bytes;
 use crate::error::{Error, ErrorType};
 use crate::orders::Order;
 use crate::positions::Position;
+use crate::trades::Trade;
 
 #[derive(Debug, Clone, Deserialize)]
 struct RawMessage {
-    #[serde(rename = "payload")]
-    payload: RawPayload,
+    pub payload: RawPayload,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -94,17 +93,6 @@ pub enum PayloadType {
     ErrorNotice,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Heartbeat {
-    pub timestamp: i64,
-    pub payload: HeartbeatPayload,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct HeartbeatPayload {
-    #[serde(rename = "type")]
-    pub payload_type: PayloadType,
-}
 
 // All message formats and types, along with their serialization
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -119,6 +107,18 @@ pub enum ActivityMessage {
     LocateInventoryUpdate(LocateInventoryUpdate),
     ErrorNotice(ErrorNotice),
     Heartbeat(Heartbeat)
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Heartbeat {
+    pub timestamp: i64,
+    pub payload: HeartbeatPayload,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct HeartbeatPayload {
+    #[serde(rename = "type")]
+    pub payload_type: PayloadType,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -148,7 +148,7 @@ pub struct SubscribeActivityPayload {
     pub account_id: String,
 }
 
-// Subscribe Ack message format (INCOMING)
+// Subscribe an Ack message format (INCOMING)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SubscribeActivityAck {
     pub timestamp: i64,
@@ -200,7 +200,7 @@ pub struct TradeNotice {
 pub struct TradeNoticePayload {
     #[serde(rename = "type")]
     pub payload_type: PayloadType,
-    pub data: Value,
+    pub data: Trade,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -228,7 +228,7 @@ pub struct BuyingPowerUpdate {
 pub struct BuyingPowerUpdatePayload {
     #[serde(rename = "type")]
     pub payload_type: PayloadType,
-    // pub data: BuyingPowerUpdateData, TODO add this
+    // pub data: BuyingPowerUpdateData
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

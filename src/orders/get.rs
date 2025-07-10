@@ -38,10 +38,10 @@ pub struct ListOrdersParams {
 
 #[cfg(feature = "async")]
 pub async fn get_order(client: &AsyncClient, order_id: &str) -> Result<Order, Error> {
-    let url = format!(
-        "{}/studio/v2/accounts/{}/orders/{}",
-        client.client_options.api_url, client.client_options.account_id, order_id
-    );
+    let api_url: &str = &client.client_options.api_url;
+    let account_id: &str = &client.client_options.account_id;
+
+    let url = format!("{api_url}/studio/v2/accounts/{account_id}/orders/{order_id}");
 
     let request_builder: RequestBuilder = client.client.get(&url);
     let response: Response = request_builder.send().await?;
@@ -56,12 +56,10 @@ pub async fn list_orders(
     client: &AsyncClient,
     params: ListOrdersParams,
 ) -> Result<ListOrdersResponse, Error> {
-    tracing::debug!("get_orders");
+    let api_url: &str = &client.client_options.api_url;
+    let account_id: &str = &client.client_options.account_id;
 
-    let url: String = format!(
-        "{}/studio/v2/accounts/{}/orders",
-        client.client_options.api_url, client.client_options.account_id
-    );
+    let url: String = format!("{api_url}/studio/v2/accounts/{account_id}/orders");
 
     let request_builder: RequestBuilder = client
         .client

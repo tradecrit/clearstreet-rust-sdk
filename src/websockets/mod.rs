@@ -25,14 +25,14 @@ pub async fn connect_websocket(
 ) -> Result<WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>, Error> {
     tracing::debug!("Creating websocket session");
 
-    let ws_url = client.client_options.websocket_url.clone();
+    let ws_url = &client.client_options.websocket_url;
 
     let (mut ws_stream, _) = connect_async(ws_url)
         .await?;
 
     // Build an auth message
-    let token = &client.token;
-    let account_id = &client.client_options.account_id;
+    let token: &str = &client.token;
+    let account_id: &str = &client.client_options.account_id;
 
     let auth_msg = SubscribeActivity {
         authorization: token.to_string(),

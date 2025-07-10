@@ -23,12 +23,13 @@ pub async fn update_order(
     order_id: &str,
     body: UpdateOrderRequestBody,
 ) -> Result<(), Error> {
-    let url: String = format!(
-        "{}/studio/v2/accounts/{}/orders/{}",
-        client.client_options.api_url, client.client_options.account_id, order_id
-    );
+    let api_url: &str = &client.client_options.api_url;
+    let account_id: &str = &client.client_options.account_id;
+
+    let url: String = format!("{api_url}/studio/v2/accounts/{account_id}/orders/{order_id}");
 
     let request_builder: RequestBuilder = client.client.patch(&url).json(&body);
+
     let response: Response = request_builder
         .send()
         .await?;

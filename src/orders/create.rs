@@ -34,15 +34,15 @@ pub struct CreateOrderResponse {
 
 #[cfg(feature = "async")]
 pub async fn create_order(
-    async_client: &AsyncClient,
+    client: &AsyncClient,
     params: CreateOrderParams,
 ) -> Result<CreateOrderResponse, Error> {
-    let url = format!(
-        "{}/studio/v2/accounts/{}/orders",
-        async_client.client_options.api_url, async_client.client_options.account_id
-    );
+    let api_url: &str = &client.client_options.api_url;
+    let account_id: &str = &client.client_options.account_id;
 
-    let request_builder: RequestBuilder = async_client.client.post(&url).json(&params);
+    let url: String = format!("{api_url}/studio/v2/accounts/{account_id}/orders");
+
+    let request_builder: RequestBuilder = client.client.post(&url).json(&params);
 
     let response: Response = request_builder.send().await?;
 

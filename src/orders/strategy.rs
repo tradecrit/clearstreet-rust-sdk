@@ -1,10 +1,10 @@
+use crate::error::{Error, ErrorType};
+use serde::de::{MapAccess, Visitor};
+use serde::ser::SerializeMap;
+use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt;
 use std::fmt::Display;
 use std::str::FromStr;
-use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
-use serde::de::{MapAccess, Visitor};
-use serde::ser::SerializeMap;
-use crate::error::{Error, ErrorType};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
 #[serde(rename_all = "snake_case")]

@@ -27,10 +27,10 @@ pub struct ListPositionsResponse {
 
 #[cfg(feature = "async")]
 pub async fn get_position(client: &AsyncClient, symbol: &str) -> Result<Position, Error> {
-    let url = format!(
-        "{}/studio/v2/accounts/{}/positions/{}",
-        client.client_options.api_url, client.client_options.account_id, symbol
-    );
+    let api_url: &str = &client.client_options.api_url;
+    let account_id: &str = &client.client_options.account_id;
+
+    let url = format!("{api_url}/studio/v2/accounts/{account_id}/positions/{symbol}");
 
     let request_builder = client.client.get(&url);
     let response: Response = request_builder.send().await?;
@@ -40,10 +40,10 @@ pub async fn get_position(client: &AsyncClient, symbol: &str) -> Result<Position
 
 #[cfg(feature = "async")]
 pub async fn list_positions(client: &AsyncClient) -> Result<ListPositionsResponse, Error> {
-    let url = format!(
-        "{}/studio/v2/accounts/{}/positions",
-        client.client_options.api_url, client.client_options.account_id
-    );
+    let api_url: &str = &client.client_options.api_url;
+    let account_id: &str = &client.client_options.account_id;
+
+    let url = format!("{api_url}/studio/v2/accounts/{account_id}/positions");
 
     let request_builder = client.client.get(&url);
     let response: Response = request_builder.send().await?;
