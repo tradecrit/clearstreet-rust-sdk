@@ -12,6 +12,7 @@ use std::time::Duration;
 use reqwest::Client;
 use tokio::net::TcpStream;
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
+use crate::instruments::{get_instrument, Instrument};
 use crate::websockets::connect_websocket;
 
 #[derive(Debug, Clone)]
@@ -99,7 +100,11 @@ where
     async fn list_positions(&self) -> Result<ListPositionsResponse, Error> {
         list_positions(self).await
     }
-    
+
+    async fn get_instrument(&self, symbol: &str) -> Result<Instrument, Error> {
+        get_instrument(self, symbol).await
+    }
+
     async fn connect_websocket(&self) -> Result<WebSocketStream<MaybeTlsStream<TcpStream>>, Error> {
         connect_websocket(&self).await
     }

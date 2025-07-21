@@ -134,7 +134,7 @@ dependencies = [
 
 [[package]]
 name = "clearstreet"
-version = "0.1.40"
+version = "0.1.41"
 dependencies = [
  "async-trait",
  "chrono",

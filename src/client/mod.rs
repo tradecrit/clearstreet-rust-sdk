@@ -78,6 +78,7 @@ impl Default for ClientOptions {
 #[cfg(feature = "async")]
 use async_trait::async_trait;
 use tokio_tungstenite::WebSocketStream;
+use crate::instruments;
 
 #[cfg(feature = "async")]
 #[async_trait]
@@ -90,12 +91,15 @@ pub trait AsyncClearstreetClient: Send + Sync {
         &self,
         params: CreateOrderParams,
     ) -> Result<CreateOrderResponse, Error>;
+
     async fn get_order(&self, order_id: &str) -> Result<Order, Error>;
+
     async fn update_order(
         &self,
         order_id: &str,
         params: UpdateOrderRequestBody,
     ) -> Result<(), Error>;
+
     async fn delete_order(&self, order_id: &str) -> Result<(), Error>;
 
     async fn delete_all_orders(&self, symbol: Option<&str>) -> Result<(), Error>;
@@ -108,6 +112,9 @@ pub trait AsyncClearstreetClient: Send + Sync {
     async fn get_position(&self, symbol: &str) -> Result<Position, Error>;
 
     async fn list_positions(&self) -> Result<ListPositionsResponse, Error>;
+
+    async fn get_instrument(&self, symbol: &str )-> Result<instruments::Instrument, Error>;
+
     async fn connect_websocket(&self) -> Result<WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>, Error>;
 }
 

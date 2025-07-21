@@ -8,3 +8,4 @@ mod mock;
 
 pub mod client;
 pub mod trades;
+pub mod instruments;

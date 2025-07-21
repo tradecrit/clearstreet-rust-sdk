@@ -54,7 +54,7 @@ impl SyncClearstreetClient for SyncClient {
     fn set_token(&mut self, token: &str) {
         self.token = token.to_string();
     }
-    
+
     fn fetch_new_token(&self) -> Result<crate::authentication::TokenResponse, Error> {
         crate::authentication::fetch_new_token_blocking(&self.client_options)
     }
@@ -69,7 +69,7 @@ impl SyncClearstreetClient for SyncClient {
     fn get_order(&self, order_id: &str) -> Result<orders::Order, Error> {
         orders::get::get_order_blocking(self, order_id)
     }
-    
+
     fn update_order(&self, order_id: &str, params: orders::update::UpdateOrderRequestBody) -> Result<(), Error> {
         orders::update::update_order_blocking(self, order_id, params)
     }
